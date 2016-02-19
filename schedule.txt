@@ -1,0 +1,4 @@
+Leo - Working on answering Yes/No questions. 
+Biswajeet - Making questions
+Apoorv - Answering questions
+Rohan - Come up with rules to transform parse tree
