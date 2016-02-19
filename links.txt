@@ -1,3 +1,3 @@
-http://stackoverflow.com/questions/28926017/transforming-statement-in-interegative-sentence-with-python-nltk - example of transforming statements into questions
-https://drive.google.com/a/andrew.cmu.edu/folderview?id=0BxQOsLM8_Um8dWZlMGRpT3Q0Q2s&usp=sharing - Drive repo
-http://homes.cs.washington.edu/~nasmith/papers/smith+heilman+hwa.nsf08.pdf - explanation paper
+<a href="http://stackoverflow.com/questions/28926017/transforming-statement-in-interegative-sentence-with-python-nltk"> example of transforming statements into questions</a>
+<a href="https://drive.google.com/a/andrew.cmu.edu/folderview?id=0BxQOsLM8_Um8dWZlMGRpT3Q0Q2s&usp=sharing"> Drive repo</a>
+<a href="http://homes.cs.washington.edu/~nasmith/papers/smith+heilman+hwa.nsf08.pdf"> explanation paper</a>
