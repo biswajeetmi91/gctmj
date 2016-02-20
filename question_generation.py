@@ -6,6 +6,14 @@ import pprint
 
 # Author : Rohan
 # Converting a sentence to a Yes / No question.
+# Pending Issues that need to be tackled:
+# - Need to extend it to detecting the 3 auxilliary verbs. Currently there is no check on which verb it is. (we may or may not need to use WordNet?)
+# - Need to check for first person and second person words and handle their conversion.
+# - Need to handle negation in YES / NO questions. For example:
+#		the sentence 'I don't want another beer yet' should be translated into 'You don't want another beer yet, do you?'
+# - Need to figure out if there's a better way to iterate through the parse tree and reorder the phrases. The current solution is a bit hacky?
+# - Need to check for tenses possibly.
+# - Other basic stuff like case conversion.
 
 with open("example_article.txt") as f:
 	tokenizer = PunktSentenceTokenizer()
