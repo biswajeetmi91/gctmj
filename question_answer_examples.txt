@@ -11,7 +11,7 @@ Answer   : Yes. < we could think of answering in a whole sentence - that might b
 it's better if we keep it a simple one word answer >
 
 Sentence : Leo is not into Justin Bieber.
-Question : Leo is not into Justin Bieber, is he?
+Question : Is Leo into Justin Bieber?
 Answer   : No.
 
 Sentence : Abhinav loves Miley Cyrus.
