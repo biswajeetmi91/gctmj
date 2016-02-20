@@ -5,14 +5,14 @@ Answer   : Yes.
           
 These are all examples of questions which need some work for 1. negation 2. first/second person handling 3. transformation of verbs :-
 
+Sentence : Leo is not into Justin Bieber.
+Question : Is Leo into Justin Bieber?
+Answer   : No.
+
 Sentence : I am more of a scotch person.
 Question : Are you more of a scotch person?
 Answer   : Yes. < we could think of answering in a whole sentence - that might be better, but according to the TA, 
 it's better if we keep it a simple one word answer >
-
-Sentence : Leo is not into Justin Bieber.
-Question : Leo is not into Justin Bieber, is he?
-Answer   : No.
 
 Sentence : Abhinav loves Miley Cyrus.
 Question : Does Abhinav love Miley Cyrus?
