@@ -1,6 +1,12 @@
 from nltk.tokenize.punkt import PunktSentenceTokenizer
 import nltk
 from nltk.parse.stanford import StanfordParser
+import os
+
+os.environ['JAVAHOME'] = 'C:/Program Files/Java/jdk1.8.0_73/bin'
+os.environ['CLASSPATH'] = 'F:/stanford/stanford-parser-full-2015-04-20/stanford-parser.jar'
+os.environ['STANFORD_MODELS'] = 'F:/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
+
 
 import pprint
 
@@ -18,27 +24,28 @@ import pprint
 with open("example_article.txt") as f:
 	tokenizer = PunktSentenceTokenizer()
 	sentences = tokenizer.tokenize(f.read().decode('utf-8').replace("\n"," "))
-	parser=StanfordParser()	
+	parser=StanfordParser()
 
 	print len(sentences)
 	print len([ x for x in sentences if "is" in x])
 
 	sentences[0] = "I am going to watch a movie in the evening."
 	sentences[0] = "I have always wondered how I have always been so good on the guitar."
-	sentences[0] =  "Our dinner has been eaten by the dog."
+	sentences[0] = "Our dinner has been eaten by the dog."
 	sentences[0] = "Playing golf is my favorite pastime"
-	
+	sentences[0] = "John went to the pub in ShadySide"
+
 	sentences[0] = sentences[0].rstrip('.')
 	parseTree = list(parser.raw_parse((sentences[0])))
-	print sentences[0] 
-	
+	print sentences[0]
+
 	# the parse tree for the entire sentence
 	root = parseTree[0]
 	print type(root)
 	print root
 	print root.pretty_print()
 	print root.label()
-	
+
 	print ' '.join(root.leaves())
 
 	posTags = {}
@@ -76,9 +83,9 @@ with open("example_article.txt") as f:
 	print ' '.join(question) + '?' # CHANGE REQUIRED : PUNCTUATION AND CASE CONVERSION
 
 
-	
 
 
-			
-	
+
+
+
 
