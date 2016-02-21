@@ -3,3 +3,6 @@
 <a href="http://homes.cs.washington.edu/~nasmith/papers/smith+heilman+hwa.nsf08.pdf"> explanation paper</a>
 http://www.nltk.org/_modules/nltk/tree.html - Structure of parse tree
 http://www.surdeanu.info/mihai/teaching/ista555-fall13/readings/PennTreebankConstituents.html - POS Tag Info - Find a better source?
+http://www.nltk.org/_modules/nltk/parse/stanford.html - Stanford library documentation
+http://textminingonline.com/dive-into-nltk-part-ii-sentence-tokenize-and-word-tokenize - Dive into NLTK
+https://wiki.python.org/moin/Generators - I found this useful since I didn't know about generators in python.
