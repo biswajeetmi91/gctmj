@@ -1,0 +1,5 @@
+Has David Beckham been a UNICEF UK ambassador?#YES
+Does David Beckham have an older sister?#YES
+Has David Beckham played for Manchester United?#YES
+Was David Beckham born in France?#NO
+Was David Beckham born in England?#YES
