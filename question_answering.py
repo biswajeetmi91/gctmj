@@ -5,7 +5,7 @@ from nltk.tag import StanfordNERTagger
 import os
 import sys
 import pre_processing as pp
-import en
+from pattern.en import *
 import parse_cmd as cmd
 
 '''
@@ -49,10 +49,11 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
     last_part = q[end].strip("?")
     end +=1
 
+
    
     if q[1] == "did":
-
-        answer = first_part +" " + en.verb.past(last_part)
+        
+        answer = first_part +" " + conjugate(last_part,tense = PAST)
     
     else:
         answer = first_part +" " + q[1]+ " " + last_part
@@ -391,31 +392,34 @@ def answer_questions(article_path, QA_path):
         if not answered:
             if (t_q[0][1].startswith("VB") or t_q[0][1] == "MD") and t_q[1][1].startswith("NN"):
 
-                j=2
-                while t_q[j][1].startswith("NN"):
-                    j+=1
-                #The object is the sentence without the subject
-
                 j = 2
-                while t_q[j][1].startswith("NN"):
+
+
+                while t_q[j][1].startswith("N"):
                     j += 1
+                    
 
                 _object = " ".join([utils.stemm_term(t_q[i][0].strip("?")) for i in range(j,len(t_q))])
                 _object_tags = " ".join([utils.stemm_term(t_q[i][1].strip("?")) for i in range(j,len(t_q))])
-
+                _subject = " ".join([utils.stemm_term(t_q[i][0].strip("?")) for i in range(1,j)])
+                _sub_tags = " ".join([utils.stemm_term(t_q[i][1].strip("?")) for i in range(1,j)])
                 _object_vec = pp.text_to_vector (_object)
 
                 print " ".join([t_q[i][0] for i in range(len(t_q))])
 
 
-                possible_answers = [stemmed_sentences[index].lower() for index, sentence in enumerate(sentence_vec) if pp.cosine_sim(_object_vec, sentence) > 0.2]
+                possible_answers = [stemmed_sentences[index].lower() for index, sentence in enumerate(sentence_vec) if pp.cosine_sim(_object_vec, sentence) > 0.1]
                 # Sort possible answers, try from top
-                
-                _possible_answers = [ans for ans in possible_answers if ans.find(_object) > -1 and utils.stemm_term(t_q[1][0]) in ans[:ans.find(_object)]]
-                
                 current_answer = NO
-                if len(_possible_answers) != 0:
-                    current_answer = YES
+                for ans in possible_answers:
+                    if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
+                        current_answer = YES
+                        break
+                # _possible_answers = [ans for ans in possible_answers if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True) ]#and utils.stemm_term(t_q[1][0]) in ans[:ans.find(_object)]]
+                
+                
+                # if len(_possible_answers) != 0:
+                    
 
                 print current_answer
                 correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
@@ -424,7 +428,22 @@ def answer_questions(article_path, QA_path):
 
     print "{:.2f} % accuracy".format(float(correct_answer)/len(ANSWERS)*100)
 
+def find_all(answer, object,_object_tags,subject = False):
+    object_list = object.split()
+    tags_list = _object_tags.split()
+    object_list = [lemma(object_list[i]) for i in range(len(object_list)) if not "DT" in  tags_list[i]] 
+    count = 0
+    for o in object_list:
+        for v in answer.split():
 
+            if lemma(v.lower()) == o:
+                if subject:
+                    return True
+                count+=1
+                break
+           
+
+    return count == len(object_list)
 
 def write_to_file (string, filename):
     write_file = open (filename, 'r')
@@ -460,10 +479,10 @@ def extract_questions (filename):
 
 def main():
     
-
-    
     # Answers to binary questions
-    answer_questions("beckham_article.txt","beckham_QA.txt")
+    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("beckham_article.txt","beckham_QA.txt")
+    answer_questions("crux_article.txt","crux_QA.txt")
 
 if __name__ == "__main__":
     main()
