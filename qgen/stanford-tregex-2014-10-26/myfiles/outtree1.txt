@@ -1,0 +1,1 @@
+(ROOT (S (NP (NNP Darwin)) (VP (VBD studied) (SBAR (WHADVP (WRB how)) (S (unmv (NNS species)) (unmv (VB evolve)))))))
