@@ -40,19 +40,16 @@ def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec):
 
 def get_wh_structure(q, wh_tag):
     
-    search_string = wh_tag + " VB* {NP} VB*"
+    search_string = wh_tag + " MD|VB* *+ VB|VB*"
 
     m = search(search_string, q)
-
     if len(m) == 0:
         #This solves ambiguity. If a verb can also be a noun and is misclassified, we change it back to a verb
         for i in range(len(q.words)):
             if english_pack.is_verb(q.words[i].string) and not q.words[i].type.startswith("V"):
                 q.words[i].type = "VB"
+                break
         m = search(search_string, q)
-        # if len(m) == 0:
-        #     search_string =  wh_tag +" MD* {NP} VB*"
-        # m = search(search_string, q)
 
 
     
@@ -94,7 +91,7 @@ def get_wh_structure(q, wh_tag):
     return answer,final_aux
 
 def fix_punctuation(sentence):
-    return sentence.replace(" ,",",").replace(" '","'").replace(" .",".")
+    return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":")
 
 def is_ascii(word):
     for i in word:
@@ -129,7 +126,6 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
 
     answer,last_part = get_wh_structure(q, parsetree("where").words[0].type)
 
-    
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
     stem_vector = pp.text_to_vector (stem_answer)
@@ -157,17 +153,16 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
 
             # we find the index of the last verb on the question
             curr = possible_answers[index].split()
-            if len(curr) != len(current_sentence):
-                print current_sentence
-                print curr
+            assert len(curr) == len(current_sentence)
+                
             last_word = utils.stemm_term(answer.split()[-1])
             curr_idx = -1
     
             for i in range(len(curr)):
                 if utils.stemm_term(curr[i]) == last_word:
                     curr_idx = i
-                    break
-
+                    break   
+            
             if curr_idx == -1:
                 index +=1
                 continue
@@ -176,16 +171,19 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
 
 
             if not current_sentence[curr_idx] in location_prep:
+
                 index +=1
                 continue
-            #case there are words between the last word and the location prep
-            while curr_idx < len(curr) and not curr[curr_idx] in location_prep:
-                answer+= " " + current_sentence[curr_idx] 
-                curr_idx+=1
+
+
+            # #case there are words between the last word and the location prep
+            # while curr_idx < len(curr) and not curr[curr_idx] in location_prep:
+            #     answer+= " " + current_sentence[curr_idx] 
+            #     curr_idx+=1
             
-            if curr_idx == len(curr):
-                index +=1
-                continue
+            # if curr_idx == len(curr):
+            #     index +=1
+            #     continue
             # we add the location prep to the answer
 
             if curr[curr_idx] in location_prep:
@@ -251,9 +249,8 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
             print fix_punctuation(probable_answer)
             return True
         else:
-            print index
-            print "Can't answer. No possible anwers were found"
-            return False
+            print fix_punctuation(sentences[ans_idx[0]])
+            return True
 
 def answer_questions(article_path, QA_path):
     '''
@@ -352,8 +349,8 @@ def answer_questions(article_path, QA_path):
                 correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
             else:
                 print "Could not answer " + str(t_q)
-
-    print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
+    if total_answers > 0:
+        print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
 
 def isInterestingTermTag(tag):
     tag = tag.lower()
@@ -429,8 +426,8 @@ def extract_questions (filename):
 def main():
     # Answers to binary questions
     # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # answer_questions("beckham_article.txt","beckham_QA.txt")
-    # answer_questions("crux_article.txt","crux_QA.txt")
+    answer_questions("beckham_article.txt","beckham_QA.txt")
+    answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
 if __name__ == "__main__":
     main()
