@@ -4,12 +4,14 @@ from nltk.tag import StanfordNERTagger
 import os
 import sys
 import pre_processing as pp
+from dateutil.parser import parse as date_parse
 import en as english_pack
 from pattern.en import *
 from pattern.search import *
 import parse_cmd as cmd
 import json
 import string
+
 
 '''
 This file tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the text and, if we can find it, we look for the noun in the same context. If found, we answer yes and no otherwise. To match situations like Does he practice to he practices, we use stemming. This approach allow to also deal with verbs in the past like was and were.
@@ -36,6 +38,13 @@ def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec):
     possible_answers = [w[1] for w in possible_answers[::-1]]
     
     return possible_answers,answer_idxs
+
+def is_date(string):
+    try: 
+        parse(string)
+        return True
+    except ValueError:
+        return False
 
 def get_wh_structure(q, wh_tag):
     
@@ -109,7 +118,66 @@ def make_lists_equal(stemmed, normal):
                     del normal[i]
     return stemmed,normal
 
-def where_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec):
+# def when_questions(q,sentences,stemmed_sentences,sentence_vec):
+
+
+def where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
+    location_prep = set(["on", "in", "at", "over", "to"])
+
+    if not current_sentence[curr_idx] in location_prep:
+        return False, ""
+        
+    
+    answer += " " + current_sentence[curr_idx] 
+    curr_idx+=1
+    tagged_curr = parsetree(full_sentence).words
+
+    #look for the NP after the prep.
+    while not tagged_curr[curr_idx].type.startswith("N") or tagged_curr[curr_idx].type == ".":
+        answer+= " " + current_sentence[curr_idx]
+        curr_idx +=1
+    while curr_idx < len(curr) and (tagged_curr[curr_idx].type.startswith("N") \
+     or tagged_curr[curr_idx].string.lower() in location_prep or tagged_curr[curr_idx].type == "DT" or \
+     tagged_curr[curr_idx].type == ","):
+        answer+= " " + current_sentence[curr_idx]
+        curr_idx+=1
+    
+    #if ends with a location prep, remove it from the answer. Add a dot if not yet present.    
+    answer = answer.split()
+    curr_idx -= 1
+    while not tagged_curr[curr_idx].type.startswith("N"):
+        del answer[-1]
+        curr_idx-=1
+    answer[0] = answer[0].title()
+
+    #tags and looks for location
+    ner_ans_tag = ner_tag.tag([ ''.join(e for e in w if e.isalnum()) for w in answer])
+    found_location = False
+    #only accepts answers with a location tag.
+    for t in ner_ans_tag:
+        if t[1] == "LOCATION":
+            found_location = True
+            break
+    if not found_location:
+        probable_answer = " ".join(answer)
+        return False, probable_answer
+    
+    answer = " ".join(answer)
+    if not "." in answer:
+        answer+= "."
+
+    return True, answer
+
+def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
+
+    if wh_value.lower() == "where":
+        return where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag)
+
+    
+
+
+
+def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
     '''Answering where questions: Where questions follow the pattern Where V|MD NP V. When we find a question like
     this, remove the "where" word, move the NP to the front and, using cosine similarity, try to find answers that
@@ -117,13 +185,13 @@ def where_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec):
     sentence. If it is followed by any one of "on", "in", "at", "over", "to", we add this to our answer and keep
     adding words until we find the next noun to complete the answer.'''
     
+    
+    
+
     original_q = " ".join([w.string for w in q.words])
     probable_answer = ""
-    
-    location_prep = set(["on", "in", "at", "over", "to"])
 
-
-    answer,last_part = get_wh_structure(q, parsetree("where").words[0].type)
+    answer,last_part = get_wh_structure(q, parsetree(wh_value).words[0].type)
 
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
@@ -167,59 +235,16 @@ def where_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec):
                 continue
             
             curr_idx+=1
+            answered, ans = handle_wh(wh_value,curr,curr_idx,current_sentence, sentences[ans_idx[index]],answer,ner_tag)
 
-
-            if not current_sentence[curr_idx] in location_prep:
-
+            if not answered:
+                if probable_answer == "":
+                    probable_answer = ans
                 index +=1
                 continue
-
-
-            if curr[curr_idx] in location_prep:
-                answer += " " + current_sentence[curr_idx] 
-                curr_idx+=1
-                tagged_curr = parsetree(sentences[ans_idx[index]]).words
-     
-                #look for the NP after the prep.
-                while not tagged_curr[curr_idx].type.startswith("N") or tagged_curr[curr_idx].type == ".":
-                    answer+= " " + current_sentence[curr_idx]
-                    curr_idx +=1
-                while curr_idx < len(curr) and (tagged_curr[curr_idx].type.startswith("N") \
-                 or tagged_curr[curr_idx].string.lower() in location_prep or tagged_curr[curr_idx].type == "DT" or \
-                 tagged_curr[curr_idx].type == ","):
-                    answer+= " " + current_sentence[curr_idx]
-                    curr_idx+=1
-                
-                #if ends with a location prep, remove it from the answer. Add a dot if not yet present.    
-                answer = answer.split()
-                curr_idx -= 1
-                while not tagged_curr[curr_idx].type.startswith("N"):
-                    del answer[-1]
-                    curr_idx-=1
-                answer[0] = answer[0].title()
-
-                #tags and looks for location
-                ner_ans_tag = ner_tag.tag([ ''.join(e for e in w if e.isalnum()) for w in answer])
-                found_location = False
-                #only accepts answers with a location tag.
-                for t in ner_ans_tag:
-                    if t[1] == "LOCATION":
-                        found_location = True
-                        break
-                if not found_location:
-                    if probable_answer == "":
-                        probable_answer = " ".join(answer)
-
-                    index+=1
-                    continue
-                answer = " ".join(answer)
-                if not "." in answer:
-                    answer+= "."
-
-                answered = True
-                break
             else:
-                index+=1
+                answer = ans
+                break
         index +=1
         if index ==len(possible_answers) and cosine_threshold > 0.05:
             cosine_threshold/=2
@@ -285,6 +310,9 @@ def answer_questions(article_path, QA_path):
     t_quests_sen = [s for s in t_quests]
     correct_answer = 0
     total_answers = 0
+
+    wh_question_set = set([parsetree(w).words[0].type for w in ["where"]])
+
     for idx, t_q in enumerate(t_quests_sen):
         
         '''This rule gets a question with a verb or modal before a noun and uses string matching to find the rest of the
@@ -294,11 +322,9 @@ def answer_questions(article_path, QA_path):
 
         answered = False
         for w in t_q.words:
-            if w.type.startswith("W"):
-                
-                if w.string.lower() == "where":
-                    answered = where_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec)
-                    break
+            if w.type in wh_question_set:
+                answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,w.string)
+                break
 
         # t_q = [w for w in t_q.words]
         t_q = t_q.words
