@@ -1,5 +1,4 @@
 _author_ = 'lrmneves', 'apoorvab'
-import utils
 from nltk.tag import StanfordNERTagger
 import os
 import sys
@@ -11,6 +10,8 @@ from pattern.search import *
 import parse_cmd as cmd
 import json
 import string
+import utils
+
 
 
 '''
@@ -29,19 +30,32 @@ def getQA(article):
             answers.append(QA[1])
     print "Answering questions for article " + article
     return questions,answers
+def has_all_main(possible_answer, main_part):
+    possible_answer = set(possible_answer.split())
+    count = 0
 
+    if not lemma(main_part[-1].lower()) in possible_answer:
+        return False
 
-def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec):
+    return True
+
+def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec,main_part = None):
     possible_answers = [(pp.cosine_sim(vec, s),stemmed_sentences[index].lower(),index) for index, s in enumerate(sentence_vec) if pp.cosine_sim(vec, s) > 0.0]
     possible_answers.sort()
-    answer_idxs = [w[2] for w in possible_answers[::-1]]
-    possible_answers = [w[1] for w in possible_answers[::-1]]
-    
+    if main_part == None:
+        answer_idxs = [w[2] for w in possible_answers[::-1]]
+        possible_answers = [w[1] for w in possible_answers[::-1]]
+    else:
+        possible_answers = [w for w in possible_answers[::-1] if has_all_main(w[1],main_part)]
+        answer_idxs = [w[2] for w in possible_answers]
+        possible_answers = [w[1] for w in possible_answers]
     return possible_answers,answer_idxs
 
 def is_date(string):
     try: 
-        parse(string)
+        date_parse(string)
+        if string == "at" or string =="on" or string == "." or string == ",":
+            return False
         return True
     except ValueError:
         return False
@@ -92,11 +106,13 @@ def get_wh_structure(q, wh_tag):
         elif english_pack.verb.is_present(v.string, person=3):
             m[-1].string = english_pack.verb.present(m[-1].string,person  = 3)
     
-    answer = " ".join([w.string for w in m])
+    main_part  = [w.string for w in m]
 
+    answer = " ".join(main_part)
+ 
     answer = " ".join([initial_aux,answer,final_aux]).strip()
 
-    return answer,final_aux
+    return answer, main_part
 
 def fix_punctuation(sentence):
     return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":")
@@ -105,6 +121,15 @@ def is_ascii(word):
     for i in word:
         if ord(i) > 128:
             return False
+    return True
+
+def have_seen(already_seen,current_sentence,curr_idx):
+    t = tag(current_sentence[curr_idx].lower())[0][1]
+    
+    if not current_sentence[curr_idx].lower() in already_seen:
+        return False
+    if not t.startswith("N") or not t.startswith("V"):
+        return False
     return True
 
 def make_lists_equal(stemmed, normal):
@@ -118,12 +143,67 @@ def make_lists_equal(stemmed, normal):
                     del normal[i]
     return stemmed,normal
 
-# def when_questions(q,sentences,stemmed_sentences,sentence_vec):
+def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
+    already_seen = set(answer.split())
+    initial_size = len(answer.split())
 
+    if have_seen(already_seen,current_sentence,curr_idx):
+        answer += " " + current_sentence[curr_idx] 
+    curr_idx+=1
+    tagged_curr = parsetree(full_sentence).words
 
-def where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
+    date_preposition = set(["in","at","on"])
+    
+    #look for the NP after the prep.
+    while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
+        
+        if not have_seen(already_seen,current_sentence,curr_idx):
+            answer+= " " + current_sentence[curr_idx]
+        curr_idx +=1
+
+    while curr_idx < len(curr) and (is_date(tagged_curr[curr_idx].string)\
+    or tagged_curr[curr_idx].type == "DT" or tagged_curr[curr_idx].type == ","):
+        if not have_seen(already_seen,current_sentence,curr_idx):
+            answer+= " " + current_sentence[curr_idx]
+        curr_idx +=1
+     
+    answer = answer.split()
+    curr_idx -= 1
+    while not is_date(tagged_curr[curr_idx].string) and len(answer) > initial_size:
+        del answer[-1]
+        curr_idx-=1
+
+    if len(answer) == initial_size:
+        return False,""
+    
+    answer[0] = answer[0].title()
+    found_date = False
+    found_prep = False
+    for w in answer:
+        if is_date(w):
+            found_date = True
+        if w in date_preposition:
+            found_prep = True
+            
+    if not found_date:
+        return False, ""
+
+    if not found_prep:
+        first_part = answer[:initial_size]
+        last_part = answer[initial_size:]
+        if english_pack.is_number(last_part[0]) and int(last_part[0]) < 32:
+            answer = first_part + ["on"] + last_part
+        else:
+            answer = first_part + ["in"] + last_part
+
+    answer = " ".join(answer)
+    if not "." in answer:
+        answer+= "."
+
+    return True, answer
+def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
     location_prep = set(["on", "in", "at", "over", "to"])
-
+    initial_size = len(answer.split())
     if not current_sentence[curr_idx] in location_prep:
         return False, ""
         
@@ -132,23 +212,28 @@ def where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answe
     curr_idx+=1
     tagged_curr = parsetree(full_sentence).words
 
+    already_seen = set(answer.split())
     #look for the NP after the prep.
     while not tagged_curr[curr_idx].type.startswith("N") or tagged_curr[curr_idx].type == ".":
-        answer+= " " + current_sentence[curr_idx]
+        if not have_seen(already_seen,current_sentence,curr_idx):
+            answer+= " " + current_sentence[curr_idx]
         curr_idx +=1
     while curr_idx < len(curr) and (tagged_curr[curr_idx].type.startswith("N") \
      or tagged_curr[curr_idx].string.lower() in location_prep or tagged_curr[curr_idx].type == "DT" or \
      tagged_curr[curr_idx].type == ","):
-        answer+= " " + current_sentence[curr_idx]
+        if not have_seen(already_seen,current_sentence,curr_idx):
+            answer+= " " + current_sentence[curr_idx]
         curr_idx+=1
     
     #if ends with a location prep, remove it from the answer. Add a dot if not yet present.    
     answer = answer.split()
     curr_idx -= 1
-    while not tagged_curr[curr_idx].type.startswith("N"):
+    while not tagged_curr[curr_idx].type.startswith("N") and len(answer) > initial_size: 
         del answer[-1]
         curr_idx-=1
     answer[0] = answer[0].title()
+    if len(answer) == initial_size:
+        return False,""
 
     #tags and looks for location
     ner_ans_tag = ner_tag.tag([ ''.join(e for e in w if e.isalnum()) for w in answer])
@@ -171,8 +256,10 @@ def where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answe
 def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
 
     if wh_value.lower() == "where":
-        return where_questions(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner_tag)
+        return where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag)
 
+    if wh_value.lower() == "when":
+        return when_questions(curr,curr_idx,current_sentence, full_sentence,answer)
     
 
 
@@ -191,7 +278,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
     original_q = " ".join([w.string for w in q.words])
     probable_answer = ""
 
-    answer,last_part = get_wh_structure(q, parsetree(wh_value).words[0].type)
+    answer,main_part = get_wh_structure(q, parsetree(wh_value).words[0].type)
 
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
@@ -199,7 +286,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
     #order possible answers by similarity
 
-    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
     answered = False
     index = 0
     #iterate from the most probable answer to the less until an answer is found
@@ -258,11 +345,11 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
         if probable_answer != "":
             if not "." in probable_answer:
                 probable_answer+= "."
-            print "Not sure"
             print fix_punctuation(original_q)
             print fix_punctuation(probable_answer)
             return True
         else:
+            print fix_punctuation(original_q)
             print fix_punctuation(sentences[ans_idx[0]])
             return True
 
@@ -281,19 +368,10 @@ def answer_questions(article_path, QA_path):
     NO = "NO"
     questions, ANSWERS = getQA(QA_path)
 
-    # # Parse command line to get question and answer (if any)
-    # if len(sys.argv) > 1:
-    #     (question, answer) = cmd.parse_cmd (sys.argv)
-    #     # Add question and answer to file
-    #     if answer != "":
-    #         write_to_file (question + "\t" + answer, 'question_bank.txt')
-
+   
     # Vectorize document
     sentences ,stemmed_sentences, sentence_vec = pre_processing (article_path)
     
-
-    # Set of training questions
-    # questions, ANSWERS = extract_questions ('question_bank.txt')
     
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
@@ -324,6 +402,7 @@ def answer_questions(article_path, QA_path):
         for w in t_q.words:
             if w.type in wh_question_set:
                 answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,w.string)
+                
                 break
 
         # t_q = [w for w in t_q.words]
@@ -349,7 +428,7 @@ def answer_questions(article_path, QA_path):
                 _object_vec = pp.text_to_vector (_object)
 
                 print " ".join([t_q[i].string for i in range(len(t_q))])
-                possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec)
+                possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
 
                 # Sort possible answers, try from top
                 current_answer = NO
