@@ -1,6 +1,5 @@
 _author_ = 'lrmneves', 'apoorvab'
 import utils
-from nltk.tag.stanford import StanfordPOSTagger
 from nltk.tag import StanfordNERTagger
 import os
 import sys
@@ -110,7 +109,7 @@ def make_lists_equal(stemmed, normal):
                     del normal[i]
     return stemmed,normal
 
-def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec):
+def where_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec):
 
     '''Answering where questions: Where questions follow the pattern Where V|MD NP V. When we find a question like
     this, remove the "where" word, move the NP to the front and, using cosine similarity, try to find answers that
@@ -175,16 +174,6 @@ def where_questions(q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
                 index +=1
                 continue
 
-
-            # #case there are words between the last word and the location prep
-            # while curr_idx < len(curr) and not curr[curr_idx] in location_prep:
-            #     answer+= " " + current_sentence[curr_idx] 
-            #     curr_idx+=1
-            
-            # if curr_idx == len(curr):
-            #     index +=1
-            #     continue
-            # we add the location prep to the answer
 
             if curr[curr_idx] in location_prep:
                 answer += " " + current_sentence[curr_idx] 
@@ -285,14 +274,12 @@ def answer_questions(article_path, QA_path):
     stemmed_questions = utils.get_stemmed_sentences(questions)
 
     #  Update Environment Variables
-    pos_tag = StanfordPOSTagger("english-bidirectional-distsim.tagger")
 
-    pos_tag = utils.update_tagger_jars(pos_tag)
     ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
     ner_tag = utils.update_tagger_jars(ner_tag)
     # Get tagged questions
 
-    tagged_questions = [pos_tag.tag(q.split()) for q in questions]
+    # tagged_questions = [pos_tag.tag(q.split()) for q in questions]
     t_quests = [parsetree(q, tokenize = True,  chunks = True, relations=True, lemmata=True) for q in questions]
     
     t_quests_sen = [s for s in t_quests]
@@ -310,7 +297,7 @@ def answer_questions(article_path, QA_path):
             if w.type.startswith("W"):
                 
                 if w.string.lower() == "where":
-                    answered = where_questions(t_q,pos_tag,ner_tag,sentences,stemmed_sentences, sentence_vec)
+                    answered = where_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec)
                     break
 
         # t_q = [w for w in t_q.words]
@@ -425,7 +412,7 @@ def extract_questions (filename):
 
 def main():
     # Answers to binary questions
-    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    answer_questions("propaganda_article.txt","propaganda_QA.txt")
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
