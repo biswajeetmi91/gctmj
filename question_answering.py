@@ -33,7 +33,6 @@ def getQA(article):
 def has_all_main(possible_answer, main_part):
     possible_answer = set(possible_answer.split())
     count = 0
-
     if not lemma(main_part[-1].lower()) in possible_answer:
         return False
 
@@ -115,7 +114,7 @@ def get_wh_structure(q, wh_tag):
     return answer, main_part
 
 def fix_punctuation(sentence):
-    return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":")
+    return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":").replace(" ?","?").replace(" \"","\"")
 
 def is_ascii(word):
     for i in word:
@@ -260,9 +259,65 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
 
     if wh_value.lower() == "when":
         return when_questions(curr,curr_idx,current_sentence, full_sentence,answer)
+
+    # if wh_value.lower() == "how":
+    #     return how_questions()
     
 
+def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
 
+    search_string = "how many {!VB*+} VB*"
+
+    m = search(search_string, q)
+    print m
+
+    first_part =[w.string for w in m[0].words[2:-1]]
+    search_string = "VB* *+"
+
+    main_part = [lemma(first_part[0])]
+    m = search(search_string, q)
+    second_part = [w.string for w in m[0].words[1:]]
+    
+    answer = first_part + second_part
+    stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer])
+    stem_vector = pp.text_to_vector (stem_answer)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
+
+    answered = False
+    index = 0
+    steps_to_rewind = 5
+    while not answered and index < len(possible_answers):
+        current_sentence = sentences[ans_idx[index]].split() 
+        curr = possible_answers[index].split()
+
+
+        main_idx = curr.index(main_part[0])
+        if main_idx == -1:
+            index+=1
+            continue
+        num_idx = -1
+        for i in range(steps_to_rewind):
+            if main_idx - (i+1) >= 0:
+                if english_pack.is_number(curr[main_idx- (i+1)]):
+                    num_idx = main_idx - (i+1)
+                    break
+            else:
+                break
+        
+        if num_idx != -1:
+            end_idx = num_idx+1
+            while num_idx > 0 and english_pack.is_number(curr[num_idx-1]):
+                num_idx-=1
+                
+            number = " ".join(current_sentence[num_idx:end_idx])
+            if number != "," and number != ".":
+
+                print fix_punctuation(" ".join([w.string for w in q.words]))
+                print fix_punctuation(number + " " + " ".join(first_part) + ".")
+                answered = True
+                break
+        index+=1
+    return answered
 
 def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
@@ -389,7 +444,7 @@ def answer_questions(article_path, QA_path):
     correct_answer = 0
     total_answers = 0
 
-    wh_question_set = set([parsetree(w).words[0].type for w in ["where"]])
+    wh_question_set = set(["where","when"])
 
     for idx, t_q in enumerate(t_quests_sen):
         
@@ -400,12 +455,16 @@ def answer_questions(article_path, QA_path):
 
         answered = False
         for w in t_q.words:
-            if w.type in wh_question_set:
+            if w.string.lower() in wh_question_set:
                 answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,w.string)
                 
                 break
 
-        # t_q = [w for w in t_q.words]
+        if not answered:
+            if "how many" in t_q.string.lower():
+                answered = how_many_questions(t_q,sentences,stemmed_sentences, sentence_vec)
+
+
         t_q = t_q.words
 
         
@@ -427,7 +486,7 @@ def answer_questions(article_path, QA_path):
                 _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
                 _object_vec = pp.text_to_vector (_object)
 
-                print " ".join([t_q[i].string for i in range(len(t_q))])
+                print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
                 possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
 
                 # Sort possible answers, try from top
