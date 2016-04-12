@@ -18,6 +18,7 @@ def get_cosine(vec1, vec2):
 
 def text_to_vector(text):
     words = WORD.findall(text)
+
     return Counter(words)
 
 #text1 = 'Is New Delhi the capital of India .'
