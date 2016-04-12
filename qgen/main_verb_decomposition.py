@@ -5,6 +5,7 @@ sys.path.insert(0, 'pywordnet')
 from nltk.parse.stanford import StanfordParser
 
 posTags = {'phrases':['ADJP','ADVP','CONJP','FRAG','INTJ','LST','NAC','NP','NX','PP','PRN','PRT','QP','RRC','UCP','VP','WHADJP','WHAVP','WHNP','WHPP','X','WHADVP']}
+parser = StanfordParser()	
 
 # AUTHOR: rkohli1
 # This is a program to transford a sentence by adding an auxilliary verb to sentences that don't already have one. 
@@ -12,9 +13,12 @@ posTags = {'phrases':['ADJP','ADVP','CONJP','FRAG','INTJ','LST','NAC','NP','NX',
 # the <input file> must contain a \n - separated list of sentences to be transformed.
 
 def main():
-	parser = StanfordParser()	
+	global parser
 	INPUT_FILE = 'input_sentences.txt'
 	OUTPUT_FILE = 'output_sentences.txt'
+
+	# print getSentenceWithAux('Where Rohan went.')
+	# return
 
 	# testEn()
 	if len(sys.argv) == 3:
@@ -22,10 +26,11 @@ def main():
 		OUTPUT_FILE = sys.argv[2]
 	
 	sentences = open(INPUT_FILE).read().split('\n')
+	# sentences = ['Sentence 1','Sentence 2','Sentence 3']
 	outputSentences = []	
 	for sentence in sentences:
 		parseTree = list(parser.raw_parse((sentence)))
-		sentence = getSentenceWithAux(parseTree)
+		sentence = getSentenceWithAuxFromParseTree(parseTree)
 		print sentence
 		outputSentences.append(' '.join(sentence))
 	
@@ -33,7 +38,12 @@ def main():
 
 	return
 
-def getSentenceWithAux(parseTree):
+def getSentenceWithAux(sentence):
+	global parser
+	parseTree = list(parser.raw_parse((sentence)))
+	return getSentenceWithAuxFromParseTree(parseTree)
+
+def getSentenceWithAuxFromParseTree(parseTree):
 	# print parseTree
 	global posTags
 	root = parseTree[0]
