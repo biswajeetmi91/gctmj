@@ -29,6 +29,8 @@ def main():
 	# sentences = ['Sentence 1','Sentence 2','Sentence 3']
 	outputSentences = []	
 	for sentence in sentences:
+		if len(sentence) == 0: 
+			continue
 		parseTree = list(parser.raw_parse((sentence)))
 		sentence = getSentenceWithAuxFromParseTree(parseTree)
 		print sentence
@@ -53,6 +55,15 @@ def getSentenceWithAuxFromParseTree(parseTree):
 	sentenceWithAux = []
 	
 	state = 0
+	# state 0 	: 	initial state
+	# state 0-1 : 	a non-verb word was found in the second position. In this case, we need to insert a placeholder for an auxilliary verb in the second
+	# 			position
+	# state 0-2 : 	a verb was found in the second position. in this case, we don't need to do anything at all since the sentence sounds correct.
+	# state 1-2 : 	once we reached state 1, then we just continued looking for a verb. Once we find it, we 
+					# a) In case this verb is already an auxilliary verb then we simply need to move it in the placeholder and do nothing else.
+					# b) Insert the correct auxilliary verb in the placeholder
+					# c) correct the tense of this verb
+	
 
 	for s in root.subtrees():
 		# each subtree has some leaves
@@ -63,28 +74,42 @@ def getSentenceWithAuxFromParseTree(parseTree):
 		
 		if len(leaves) == 1 and str(s.label()) not in posTags['phrases']:
 			idx += 1
-			# print str(idx) + ' = ' + str(s.label()) + ' ' + str(leaves[0])
+			print str(idx) + ' = ' + str(s.label()) + ' ' + str(leaves[0])
 			pos = s.label()[:2]
 			leaf = str(leaves[0])
 			# print 'leaf = ' + str(leaf)
 
 			if state == 0 and idx == 1:
 				if pos == 'VB':
-					state = 2
+					state = 2 # state 0-2
 				else:
-					state = 1
+					state = 1 # state 0-1
 					sentenceWithAux.append('')
 				sentenceWithAux.append(leaf)
 				continue
 			
-			if state == 1 and pos == 'VB':
+			if state == 1 and pos == 'VB': # state 1-2
+
 				simplePast = en.verb.past(leaf)
 				simplePresent = en.verb.present(leaf)
 				principlePresent = en.verb.present_participle(leaf)
+				# print leaf
+				# print simplePast
+				# print simplePresent
+				# print principlePresent
+
+				if simplePresent in ['be','can','could','do','have','will','would']:
+					sentenceWithAux[1] = leaf
+					state = 2
+					continue
 
 				tense = en.verb.tense(leaf)
+				print 'tense = ' + str(tense)
+
 				if tense == 'past':
 					sentenceWithAux[1] = ('did')
+				# if tense == '1st singular past':
+				# 	sentenceWithAux[1] = ('did')
 				if tense == '3rd singular present':
 					sentenceWithAux[1] = ('does')
 				if tense == 'infinitive':
