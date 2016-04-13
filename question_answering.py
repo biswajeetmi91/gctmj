@@ -91,7 +91,7 @@ def get_wh_structure(q, wh_tag):
 
     m = m[1:]
     current = 0
-    while not m[current +1].type.startswith("V"):
+    while not m[current +1].type.startswith("V") or  m[current+1].string[0].isupper():
         m[current],m[current+1] = m[current+1],m[current]
         current +=1
 
@@ -114,6 +114,9 @@ def get_wh_structure(q, wh_tag):
     return answer, main_part
 
 def fix_punctuation(sentence):
+    sentence = sentence.split()
+    sentence[0] = sentence[0].title()
+    sentence = " ".join(sentence)
     return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":").replace(" ?","?").replace(" \"","\"")
 
 def is_ascii(word):
@@ -124,10 +127,13 @@ def is_ascii(word):
 
 def have_seen(already_seen,current_sentence,curr_idx):
     t = tag(current_sentence[curr_idx].lower())[0][1]
-    
+
     if not current_sentence[curr_idx].lower() in already_seen:
+
         return False
-    if not t.startswith("N") or not t.startswith("V"):
+
+    if not t.startswith("N") and not t.startswith("V") and not t.startswith("J") and not current_sentence[curr_idx] == "\"":
+
         return False
     return True
 
@@ -143,20 +149,20 @@ def make_lists_equal(stemmed, normal):
     return stemmed,normal
 
 def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
-    already_seen = set(answer.split())
+    already_seen = set([w.lower() for w in answer.split()])
     initial_size = len(answer.split())
-
-    if have_seen(already_seen,current_sentence,curr_idx):
-        answer += " " + current_sentence[curr_idx] 
-    curr_idx+=1
+    # if have_seen(already_seen,current_sentence,curr_idx):
+    #     answer += " " + current_sentence[curr_idx] 
+    # curr_idx+=1
     tagged_curr = parsetree(full_sentence).words
 
     date_preposition = set(["in","at","on"])
     
     #look for the NP after the prep.
     while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
-        
+
         if not have_seen(already_seen,current_sentence,curr_idx):
+
             answer+= " " + current_sentence[curr_idx]
         curr_idx +=1
 
@@ -178,11 +184,14 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
     answer[0] = answer[0].title()
     found_date = False
     found_prep = False
-    for w in answer:
+
+    for i in range(len(answer)):
+        w = answer[i]
         if is_date(w):
             found_date = True
-        if w in date_preposition:
+        if w in date_preposition and i == initial_size:
             found_prep = True
+
             
     if not found_date:
         return False, ""
@@ -211,17 +220,26 @@ def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag
     curr_idx+=1
     tagged_curr = parsetree(full_sentence).words
 
-    already_seen = set(answer.split())
+    already_seen = set([w.lower() for w in answer.split()])
     #look for the NP after the prep.
+
     while not tagged_curr[curr_idx].type.startswith("N") or tagged_curr[curr_idx].type == ".":
         if not have_seen(already_seen,current_sentence,curr_idx):
+
+
+
             answer+= " " + current_sentence[curr_idx]
         curr_idx +=1
     while curr_idx < len(curr) and (tagged_curr[curr_idx].type.startswith("N") \
      or tagged_curr[curr_idx].string.lower() in location_prep or tagged_curr[curr_idx].type == "DT" or \
      tagged_curr[curr_idx].type == ","):
+
         if not have_seen(already_seen,current_sentence,curr_idx):
             answer+= " " + current_sentence[curr_idx]
+
+            if current_sentence[curr_idx][-1] == ".":
+                curr_idx+=1
+                break
         curr_idx+=1
     
     #if ends with a location prep, remove it from the answer. Add a dot if not yet present.    
@@ -269,7 +287,6 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
     search_string = "how many {!VB*+} VB*"
 
     m = search(search_string, q)
-    print m
 
     first_part =[w.string for w in m[0].words[2:-1]]
     search_string = "VB* *+"
@@ -362,6 +379,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
             # we find the index of the last verb on the question
             curr = possible_answers[index].split()
+
             assert len(curr) == len(current_sentence)
                 
             last_word = utils.stemm_term(answer.split()[-1])
@@ -425,7 +443,7 @@ def answer_questions(article_path, QA_path):
 
    
     # Vectorize document
-    sentences ,stemmed_sentences, sentence_vec = pre_processing (article_path)
+    sentences ,stemmed_sentences, sentence_vec = pre_processing(article_path)
     
     
     # Stem questions
@@ -488,7 +506,6 @@ def answer_questions(article_path, QA_path):
 
                 print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
                 possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
-
                 # Sort possible answers, try from top
                 current_answer = NO
                 for ans in possible_answers:
@@ -505,22 +522,24 @@ def answer_questions(article_path, QA_path):
 
 def isInterestingTermTag(tag):
     tag = tag.lower()
-    return tag.startswith("v") or tag.startswith("n") or tag.startswith("j") or tag.startswith("rb")
+    return tag.startswith("v") or tag.startswith("n") or tag.startswith("j") #or tag.startswith("rb")
 
 def find_all(answer, object,_object_tags,subject = False):
     object_list = object.split()
     tags_list = _object_tags.split()
     object_list = [lemma(object_list[i]) for i in range(len(object_list)) if isInterestingTermTag(tags_list[i]) ] 
     count = 0
+
     for o in object_list:
         for v in answer.split():
             # print v,o
             if lemma(v.lower()) == o:
+
                 if subject:
                     return True
                 count+=1
                 break
-           
+
 
     return count == len(object_list)
 
@@ -553,7 +572,7 @@ def pre_processing (filename):
 
     sentences = [s.string for s in tag_sentences] 
     tag_sentences = [parsetree(s, tokenize = True,  chunks = False, relations=False, lemmata=True) for s in sentences]       
-    # Stem sentences
+        # Stem sentences
 
     stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]#utils.get_stemmed_sentences(sentences)
     # Vectorize sentences
