@@ -6,7 +6,7 @@ reload(sys)
 sys.setdefaultencoding('utf8')
 
 def main():
-	INPUT_FILE = 'wikipedia_sample_1.txt'
+	INPUT_FILE = 'exp2.txt'
 	text = open(INPUT_FILE).read()
 	# text = 'How are you doing Mr. Kohli? This song is No. 1 on the top 40. I like mangoes.' # the code fails on 'No. 25' but works for Mr. Kohli
 	sentences = splitTextIntoSentences(text)

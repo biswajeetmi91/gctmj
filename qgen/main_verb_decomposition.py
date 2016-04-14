@@ -1,8 +1,15 @@
 # from nltk.corpus import wordnet as wn
 import en
 import sys
-sys.path.insert(0, 'pywordnet')
+import os
 from nltk.parse.stanford import StanfordParser
+
+models_path = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
+os.environ['JAVAHOME'] = '/usr/lib/jvm/java-8-oracle'
+os.environ['CLASSPATH'] = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser.jar'
+os.environ['STANFORD_MODELS'] = models_path
+
+
 
 posTags = {'phrases':['ADJP','ADVP','CONJP','FRAG','INTJ','LST','NAC','NP','NX','PP','PRN','PRT','QP','RRC','UCP','VP','WHADJP','WHAVP','WHNP','WHPP','X','WHADVP']}
 parser = StanfordParser()	
@@ -11,6 +18,10 @@ parser = StanfordParser()
 # This is a program to transford a sentence by adding an auxilliary verb to sentences that don't already have one. 
 # Two command line arguments(optional). Example : python main_verb_decomposition.py <input file> <output file>
 # the <input file> must contain a \n - separated list of sentences to be transformed.
+
+
+
+
 
 def main():
 	global parser
@@ -98,7 +109,7 @@ def getSentenceWithAuxFromParseTree(parseTree):
 				# print simplePresent
 				# print principlePresent
 
-				if simplePresent in ['be','can','could','do','have','will','would']:
+				if simplePresent in ['be','can','could','do','have','will','would','make']:
 					sentenceWithAux[1] = leaf
 					state = 2
 					continue
