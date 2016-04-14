@@ -1,0 +1,4 @@
+Is the electric eel a true eel?#NO
+Are most eels predators?#YES
+Is eel blood toxic to humans?#YES
+Do all eels live in fresh water?#NO

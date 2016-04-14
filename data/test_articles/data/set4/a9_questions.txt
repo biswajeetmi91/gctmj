@@ -1,0 +1,3 @@
+Did Becquerel study science at the École des Ponts et Chaussées?#YES
+Did he become chief engineer in the Department of Bridges and Highways in 1892?#NO
+Was Becquerel a French physicist?#YES

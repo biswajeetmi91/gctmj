@@ -1,0 +1,3 @@
+Is Berlin the capital city of Germany?#YES
+Is Berlin the largest city in Germany?#YES
+Is Schloss Charlottenburg the largest existing palace in Berlin?#YES

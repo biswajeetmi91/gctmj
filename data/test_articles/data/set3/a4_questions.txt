@@ -1,0 +1,4 @@
+Is Antwerp a city?#YES
+Is Antwerp a municipality?#YES
+Is Antwerp in Belgium?#YES
+Why is Antwerp important to fashion?#YES

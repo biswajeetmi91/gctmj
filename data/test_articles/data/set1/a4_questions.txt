@@ -1,0 +1,7 @@
+Has the dragon historically served as China's national emblem?#YES
+Do pandas hibernate?#NO
+Do giant pandas attack humans?#YES
+Is the Giant Panda a mammal?#YES
+Is the Giant Panda a terrestrial animal?#YES
+Is the Giant Panda an endangered species?#YES
+Is the Giant Panda a carnivore?#YES

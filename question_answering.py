@@ -11,12 +11,12 @@ import parse_cmd as cmd
 import json
 import string
 import utils
-
-
+#import configuration
 
 '''
 This file tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the text and, if we can find it, we look for the noun in the same context. If found, we answer yes and no otherwise. To match situations like Does he practice to he practices, we use stemming. This approach allow to also deal with verbs in the past like was and were.
 '''
+
 test_data_folder = "data/test_articles/"
 printable = set(string.printable)
 
@@ -30,6 +30,7 @@ def getQA(article):
             answers.append(QA[1])
     print "Answering questions for article " + article
     return questions,answers
+
 def has_all_main(possible_answer, main_part):
     possible_answer = set(possible_answer.split())
     count = 0
@@ -72,8 +73,6 @@ def get_wh_structure(q, wh_tag):
                 break
         m = search(search_string, q)
 
-
-    
     m = m[0]
     wh_word = m.words[0]
 
@@ -119,26 +118,18 @@ def fix_punctuation(sentence):
     sentence = " ".join(sentence)
     return sentence.replace(" ,",",").replace(" '","'").replace(" .",".").replace(" :",":").replace(" ?","?").replace(" \"","\"")
 
-def is_ascii(word):
-    for i in word:
-        if ord(i) > 128:
-            return False
-    return True
-
 def have_seen(already_seen,current_sentence,curr_idx):
     t = tag(current_sentence[curr_idx].lower())[0][1]
 
     if not current_sentence[curr_idx].lower() in already_seen:
-
         return False
 
     if not t.startswith("N") and not t.startswith("V") and not t.startswith("J") and not current_sentence[curr_idx] == "\"":
-
         return False
+
     return True
 
 def make_lists_equal(stemmed, normal):
-
     while len(stemmed) != len(normal):
         for i in range(max(len(stemmed),len(normal))):
             if stemmed[i] != lemma(normal[i]).lower():
@@ -211,7 +202,6 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
     return True, answer
 
 
-
 def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
     location_prep = set(["on", "in", "at", "over", "to"])
     initial_size = len(answer.split())
@@ -228,9 +218,6 @@ def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag
 
     while not tagged_curr[curr_idx].type.startswith("N") or tagged_curr[curr_idx].type == ".":
         if not have_seen(already_seen,current_sentence,curr_idx):
-
-
-
             answer+= " " + current_sentence[curr_idx]
         curr_idx +=1
     while curr_idx < len(curr) and (tagged_curr[curr_idx].type.startswith("N") \
@@ -282,12 +269,11 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
         return when_questions(curr,curr_idx,current_sentence, full_sentence,answer)
 
     # if wh_value.lower() == "how":
-    #     return how_questions()
-    
+    #     return how_questions()    
 
 def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
 
-    search_string = "how {many|(much VB?) {!VB*+} VB*"
+    search_string = "how many {!VB*+} VB*"
 
     m = search(search_string, q)
 
@@ -358,9 +344,6 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
     sentence. If it is followed by any one of "on", "in", "at", "over", "to", we add this to our answer and keep
     adding words until we find the next noun to complete the answer.'''
     
-    
-    
-
     original_q = " ".join([w.string for w in q.words])
     probable_answer = ""
 
@@ -441,6 +424,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
             return True
 
 def answer_questions(article_path, QA_path):
+    
     '''
     This function tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure
     of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the
@@ -454,22 +438,18 @@ def answer_questions(article_path, QA_path):
     YES = "YES"
     NO = "NO"
     questions, ANSWERS = getQA(QA_path)
-
    
     # Vectorize document
     sentences ,stemmed_sentences, sentence_vec = pre_processing(article_path)
-    
     
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
 
     #  Update Environment Variables
-
     ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
     ner_tag = utils.update_tagger_jars(ner_tag)
+    
     # Get tagged questions
-
-    # tagged_questions = [pos_tag.tag(q.split()) for q in questions]
     t_quests = [parsetree(q, tokenize = True,  chunks = True, relations=True, lemmata=True) for q in questions]
     
     t_quests_sen = [s for s in t_quests]
@@ -478,61 +458,52 @@ def answer_questions(article_path, QA_path):
 
     wh_question_set = set(["where","when"])
 
+    num_q = 0
     for idx, t_q in enumerate(t_quests_sen):
         
         '''This rule gets a question with a verb or modal before a noun and uses string matching to find the rest of the
         sentence on the text. If found, it looks for the noun on the same sentence and, if found, replies as Yes, otherwise
         # No.'''
 
-
         answered = False
-        for w in t_q.words:
-            if w.string.lower() in wh_question_set:
-                answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,w.string)
-                
-                break
 
-        if not answered:
-            if "how many" in t_q.string.lower() or "how much" in t_q.string.lower():
-                answered = how_many_questions(t_q,sentences,stemmed_sentences, sentence_vec)
+        question_type, wh_word = classify_question (t_q)
 
-
-        t_q = t_q.words
-
-        
-       
-        if not answered:
+        if question_type == "EASY":
+            t_q = t_q.words
             total_answers +=1
+            num_q += 1
+            #if (t_q[0].type.startswith("VB") or t_q[0].type == "MD" or t_q[0].type.startswith("N")):
+            j = 2
 
-            if (t_q[0].type.startswith("VB") or t_q[0].type == "MD" or t_q[0].type.startswith("N")):
-
-                j = 2
-
-
-                while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
-                    j += 1
-                
-                _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
-                _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
-                _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
-                _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
-                _object_vec = pp.text_to_vector (_object)
-
-                print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
-                possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
-                # Sort possible answers, try from top
-                current_answer = NO
-                for ans in possible_answers:
-                    if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
-                        current_answer = YES
-                        break
+            while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
+                j += 1
             
-                print current_answer
-                correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
-            else:
-                print "Could not answer " + str(t_q)
+            _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
+            _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
+            _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
+            _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
+            _object_vec = pp.text_to_vector (_object)
+
+            #print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
+            possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
+            # Sort possible answers, try from top
+            current_answer = NO
+            for ans in possible_answers:
+                if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
+                    current_answer = YES
+                    break
+            #print current_answer
+            correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
+        elif question_type == "MEDIUM_WH":
+            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,wh_word)
+        elif question_type == "MEDIUM_HOW_MANY":
+            answered = how_many_questions(t_q,sentences,stemmed_sentences, sentence_vec)
+
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
+
+    return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
     tag = tag.lower()
@@ -554,17 +525,7 @@ def find_all(answer, object,_object_tags,subject = False):
                 count+=1
                 break
 
-
     return count == len(object_list)
-
-def write_to_file (string, filename):
-    write_file = open (filename, 'r')
-    for line in write_file:
-        if line.strip() == string.strip():
-            return
-    
-    write_file = open (filename, 'a')
-    write_file.write (string + "\n")
 
 def pre_processing (filename):
     # Tokenize sentences in document
@@ -586,33 +547,65 @@ def pre_processing (filename):
 
     sentences = [s.string for s in tag_sentences] 
     tag_sentences = [parsetree(s, tokenize = True,  chunks = False, relations=False, lemmata=True) for s in sentences]       
-        # Stem sentences
-
-    stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]#utils.get_stemmed_sentences(sentences)
+    # Stem sentences
+    stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]
+    
     # Vectorize sentences
-
     sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
 
     return sentences, stemmed_sentences, sentence_vec
 
-def extract_questions (filename):
+def classify_question (tagged_question):
+    
+    question_type = "EASY"
+    wh_word = ""
+    wh_question_set = set(["where","when"])
 
-    read_file = open (filename, 'r')
-    questions = []
-    answers = []
+    if "how many" in tagged_question.string.lower():
+        question_type = "MEDIUM_HOW_MANY"
+    else:
+        for w in tagged_question.words:
+            if w.string.lower() in wh_question_set:
+                question_type = "MEDIUM_WH"
+                wh_word = w.string
+                break
 
-    for line in read_file:
-        questions.append (line.split("\t")[0].strip())
-        answers.append (line.split("\t")[1].strip())
+    tagged_question = tagged_question.words
 
-    return questions, answers
+    if tagged_question[0].type.startswith("VB") or tagged_question[0].type in ["MD", "JJ"] or tagged_question[0].type.startswith("N"):
+        question_type = "EASY"
+
+    return question_type, wh_word
+
+def evaluate_qa ():
+    acc = 0.0
+    num = 0
+    num_q = 0
+    
+    for j in range (1, 7):
+        for i in range (1, 11):
+            try:
+                x, y = answer_questions("data/set" + str(j) + "/a" + str(i) + ".txt","data/set" + str(j) + "/a" + str(i) + "_questions.txt")
+                acc += x
+                num_q += y
+                num += 1
+            except:
+                print "File Not Found"
+
+    print acc/num
+    print num_q
 
 def main():
     # Answers to binary questions
+
+    answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    answer_questions("beckham_article.txt","beckham_QA.txt")
+    answer_questions("crux_article.txt","crux_QA.txt")
+    answer_questions("spanish_article.txt","spanish_QA.txt")
     answer_questions("buffon_article.txt","buffon_QA.txt")
-    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # answer_questions("beckham_article.txt","beckham_QA.txt")
-    # answer_questions("crux_article.txt","crux_QA.txt")
-    # answer_questions("spanish_article.txt","spanish_QA.txt")
+
+    # Evaluate model on previous datasets
+    evaluate_qa ()
+
 if __name__ == "__main__":
     main()
