@@ -3,7 +3,7 @@ from nltk.tag import StanfordNERTagger
 import os
 import sys
 import pre_processing as pp
-from dateutil.parser import parse as date_parse
+#from dateutil.parser import parse as date_parse
 import en as english_pack
 from pattern.en import *
 from pattern.search import *
@@ -433,8 +433,11 @@ def answer_questions(article_path, QA_path):
     stemmed_questions = utils.get_stemmed_sentences(questions)
 
     #  Update Environment Variables
-    ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
-    ner_tag = utils.update_tagger_jars(ner_tag)
+    #stanford_path = os.environ["CORENLP_3_5_2_PATH"]
+    #ner_tag = StanfordNERTagger(os.path.join(stanford_path, "stanford-corenlp-3.5.2.jar"),
+     #                   os.path.join(stanford_path, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"))
+    #ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
+    #ner_tag = utils.update_tagger_jars(ner_tag)
     
     # Get tagged questions
     t_quests = [parsetree(q, tokenize = True,  chunks = True, relations=True, lemmata=True) for q in questions]
