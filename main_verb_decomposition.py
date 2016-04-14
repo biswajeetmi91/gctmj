@@ -4,10 +4,10 @@ import sys
 import os
 from nltk.parse.stanford import StanfordParser
 
-models_path = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
-os.environ['JAVAHOME'] = '/usr/lib/jvm/java-8-oracle'
-os.environ['CLASSPATH'] = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser.jar'
-os.environ['STANFORD_MODELS'] = models_path
+# models_path = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
+# os.environ['JAVAHOME'] = '/usr/lib/jvm/java-8-oracle'
+# os.environ['CLASSPATH'] = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser.jar'
+# os.environ['STANFORD_MODELS'] = models_path
 
 
 
@@ -26,8 +26,8 @@ parser = StanfordParser()
 def main():
 	try:
 		global parser
-		INPUT_FILE = 'input_sentences.txt'
-		OUTPUT_FILE = 'output_sentences.txt'
+		INPUT_FILE = 'qgen-old/input_sentences.txt'
+		OUTPUT_FILE = 'qgen-old/output_sentences.txt'
 
 		# print getSentenceWithAux('Where Rohan went.')
 		# return
@@ -45,7 +45,7 @@ def main():
 				continue
 			parseTree = list(parser.raw_parse((sentence)))
 			sentence = getSentenceWithAuxFromParseTree(parseTree)
-			print sentence
+			# print sentence
 			outputSentences.append(' '.join(sentence))
 		
 		open(OUTPUT_FILE,'w').write('\n'.join(outputSentences))
@@ -90,7 +90,7 @@ def getSentenceWithAuxFromParseTree(parseTree):
 			
 			if len(leaves) == 1 and str(s.label()) not in posTags['phrases']:
 				idx += 1
-				print str(idx) + ' = ' + str(s.label()) + ' ' + str(leaves[0])
+				# print str(idx) + ' = ' + str(s.label()) + ' ' + str(leaves[0])
 				pos = s.label()[:2]
 				leaf = str(leaves[0])
 				# print 'leaf = ' + str(leaf)
@@ -120,7 +120,7 @@ def getSentenceWithAuxFromParseTree(parseTree):
 						continue
 
 					tense = en.verb.tense(leaf)
-					print 'tense = ' + str(tense)
+					# print 'tense = ' + str(tense)
 
 					if tense == 'past':
 						sentenceWithAux[1] = ('did')
