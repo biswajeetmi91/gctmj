@@ -493,7 +493,7 @@ def answer_questions(article_path, QA_path):
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
                     current_answer = YES
                     break
-            #print current_answer
+            print current_answer
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,wh_word)
@@ -598,10 +598,10 @@ def evaluate_qa ():
 def main():
     # Answers to binary questions
 
-    answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    answer_questions("beckham_article.txt","beckham_QA.txt")
-    answer_questions("crux_article.txt","crux_QA.txt")
-    answer_questions("spanish_article.txt","spanish_QA.txt")
+    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("beckham_article.txt","beckham_QA.txt")
+    # answer_questions("crux_article.txt","crux_QA.txt")
+    # answer_questions("spanish_article.txt","spanish_QA.txt")
     answer_questions("buffon_article.txt","buffon_QA.txt")
 
     # Evaluate model on previous datasets
