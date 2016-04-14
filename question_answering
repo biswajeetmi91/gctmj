@@ -12,6 +12,7 @@ from dateutil.parser import parse as date_parse
 import en as english_pack
 from pattern.en import *
 from pattern.search import *
+from pattern.vector import *
 import parse_cmd as cmd
 import json
 import string
@@ -26,6 +27,7 @@ This file tries to answer simple Yes or No questions by the use of string matchi
 
 test_data_folder = "data/test_articles/"
 printable = set(string.printable)
+model = None
 
 def getQA(article):
     questions = []
@@ -46,16 +48,21 @@ def has_all_main(possible_answer, main_part):
 
     return True
 
-def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec,main_part = None):
-    possible_answers = [(pp.cosine_sim(vec, s),stemmed_sentences[index].lower(),index) for index, s in enumerate(sentence_vec) if pp.cosine_sim(vec, s) > 0.0]
-    possible_answers.sort()
+def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = None,top = 1000):
+    global model
+
+    possible_answers = model.search(search_word,top=top) 
+    possible_answers = [(stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name))for ans in possible_answers] 
+    # print possible_answers
+
     if main_part == None:
-        answer_idxs = [w[2] for w in possible_answers[::-1]]
-        possible_answers = [w[1] for w in possible_answers[::-1]]
+        answer_idxs = [w[1] for w in possible_answers]
+        possible_answers = [w[0] for w in possible_answers]
     else:
-        possible_answers = [w for w in possible_answers[::-1] if has_all_main(w[1],main_part)]
-        answer_idxs = [w[2] for w in possible_answers]
-        possible_answers = [w[1] for w in possible_answers]
+        possible_answers = [w for w in possible_answers if has_all_main(w[0],main_part)]
+        answer_idxs = [w[1] for w in possible_answers]
+        possible_answers = [w[0] for w in possible_answers]
+
     return possible_answers,answer_idxs
 
 def is_date(string):
@@ -148,22 +155,14 @@ def make_lists_equal(stemmed, normal):
 
 def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
     already_seen = set([w.lower() for w in answer.split()])
-    initial_size = len(answer.split())
-    # if have_seen(already_seen,current_sentence,curr_idx):
-    #     answer += " " + current_sentence[curr_idx] 
-    # curr_idx+=1
+  
     tagged_curr = parsetree(full_sentence).words
-
+    answer = ""
     date_preposition = set(["in","at","on"])
-    
     #look for the NP after the prep.
     while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
-
-        if not have_seen(already_seen,current_sentence,curr_idx):
-
-            answer+= " " + current_sentence[curr_idx]
         curr_idx +=1
-
+    
     while curr_idx < len(curr) and (is_date(tagged_curr[curr_idx].string)\
     or tagged_curr[curr_idx].type == "DT" or tagged_curr[curr_idx].type == ","):
         if not have_seen(already_seen,current_sentence,curr_idx):
@@ -172,13 +171,12 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
      
     answer = answer.split()
     curr_idx -= 1
-    while not is_date(tagged_curr[curr_idx].string) and len(answer) > initial_size:
+    while not is_date(tagged_curr[curr_idx].string) and len(answer) > 0:
         del answer[-1]
         curr_idx-=1
 
-    if len(answer) == initial_size:
+    if len(answer) == 0:
         return False,""
-    
     answer[0] = answer[0].title()
     found_date = False
     found_prep = False
@@ -187,7 +185,7 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
         w = answer[i]
         if is_date(w):
             found_date = True
-        if w in date_preposition and i == initial_size:
+        if w in date_preposition and i == 0:
             found_prep = True
 
             
@@ -195,12 +193,12 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
         return False, ""
 
     if not found_prep:
-        first_part = answer[:initial_size]
-        last_part = answer[initial_size:]
+        # first_part = answer[:initial_size]
+        last_part = answer
         if english_pack.is_number(last_part[0]) and int(last_part[0]) < 32:
-            answer = first_part + ["on"] + last_part
+            answer = ["on"] + last_part
         else:
-            answer = first_part + ["in"] + last_part
+            answer =  ["in"] + last_part
 
     answer = " ".join(answer)
     if not "." in answer:
@@ -211,10 +209,9 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
 
 def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
     location_prep = set(["on", "in", "at", "over", "to"])
-    initial_size = len(answer.split())
     if not current_sentence[curr_idx] in location_prep:
         return False, ""
-        
+    answer = ""
     
     answer += " " + current_sentence[curr_idx] 
     curr_idx+=1
@@ -242,11 +239,11 @@ def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag
     #if ends with a location prep, remove it from the answer. Add a dot if not yet present.    
     answer = answer.split()
     curr_idx -= 1
-    while not tagged_curr[curr_idx].type.startswith("N") and len(answer) > initial_size: 
+    while not tagged_curr[curr_idx].type.startswith("N") and len(answer) > 0: 
         del answer[-1]
         curr_idx-=1
     answer[0] = answer[0].title()
-    if len(answer) == initial_size:
+    if len(answer) == 0:
         return False,""
 
     #tags and looks for location
@@ -278,7 +275,7 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
     # if wh_value.lower() == "how":
     #     return how_questions()    
 
-def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
+def how_many_questions(q,sentences,stemmed_sentences):
 
     search_string = "how many {!VB*+} VB*"
 
@@ -294,7 +291,7 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
     answer = first_part + second_part
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer])
     stem_vector = pp.text_to_vector (stem_answer)
-    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_answer, stemmed_sentences,main_part)
 
     answered = False
     index = 0
@@ -343,7 +340,7 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
         index+=1
     return answered
 
-def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
+def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
 
     '''Answering where questions: Where questions follow the pattern Where V|MD NP V. When we find a question like
     this, remove the "where" word, move the NP to the front and, using cosine similarity, try to find answers that
@@ -362,7 +359,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
     #order possible answers by similarity
 
-    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_answer, stemmed_sentences,main_part)
     answered = False
     index = 0
     #iterate from the most probable answer to the less until an answer is found
@@ -431,7 +428,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
             return True
 
 def answer_questions(article_path, QA_path):
-    
+    global model
     '''
     This function tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure
     of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the
@@ -447,8 +444,9 @@ def answer_questions(article_path, QA_path):
     questions, ANSWERS = getQA(QA_path)
    
     # Vectorize document
-    sentences ,stemmed_sentences, sentence_vec = pre_processing(article_path)
-    
+    sentences ,stemmed_sentences,documents = pre_processing(article_path)
+    model = Model(documents=documents, weight=TFIDF)
+    # model.similarity(documents[1],)
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
 
@@ -496,10 +494,13 @@ def answer_questions(article_path, QA_path):
             _object_vec = pp.text_to_vector (_object)
 
             # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
-            possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
-            # Sort possible answers, try from top
+            possible_answers,_ = get_possible_answers(sentences,_object,stemmed_sentences,None)
+
+
             current_answer = NO
             for ans in possible_answers:
+
+                # ans = stemmed_sentences[int(ans[1].name)]
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
 
                     # if not negated(ans):
@@ -509,9 +510,9 @@ def answer_questions(article_path, QA_path):
             # print current_answer
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
-            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,wh_word)
+            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
         elif question_type == "MEDIUM_HOW_MANY":
-            answered = how_many_questions(t_q,sentences,stemmed_sentences, sentence_vec)
+            answered = how_many_questions(t_q,sentences,stemmed_sentences)
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
@@ -567,11 +568,11 @@ def pre_processing (filename):
     tag_sentences = [parsetree(s, tokenize = True,  chunks = False, relations=False, lemmata=True) for s in sentences]       
     # Stem sentences
     stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]
-    
+    documents = [Document(s,filter = lambda w: w,name=idx) for idx,s in enumerate(stemmed_sentences)]
     # Vectorize sentences
-    sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
+    #sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
 
-    return sentences, stemmed_sentences, sentence_vec
+    return sentences, stemmed_sentences, documents
 
 def classify_question (tagged_question):
     
@@ -620,7 +621,7 @@ def main():
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
-    answer_questions("buffon_article.txt","buffon_QA.txt")
+    # answer_questions("buffon_article.txt","buffon_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
