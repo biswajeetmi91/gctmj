@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 _author_ = 'lrmneves', 'apoorvab'
+import warnings
+warnings.filterwarnings("ignore")
 from nltk.tag import StanfordNERTagger
 import os
 import sys
@@ -12,7 +14,9 @@ import parse_cmd as cmd
 import json
 import string
 import utils
+from nltk.sentiment.util import mark_negation
 #import configuration
+
 
 '''
 This file tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the text and, if we can find it, we look for the noun in the same context. If found, we answer yes and no otherwise. To match situations like Does he practice to he practices, we use stemming. This approach allow to also deal with verbs in the past like was and were.
@@ -447,11 +451,11 @@ def answer_questions(article_path, QA_path):
     stemmed_questions = utils.get_stemmed_sentences(questions)
 
     #  Update Environment Variables
-    stanfordpath = os.environ["CORENLP_3_6_0_PATH"]
-    ner_tag = StanfordNERTagger(os.path.join(stanfordpath, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"), \
-                       os.path.join(stanfordpath, "stanford-corenlp-3.6.0.jar")) #StanfordNERTagger("stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2.jar","stanford-corenlp-full-2015-04-20/models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz")
-    #ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
-    #ner_tag = utils.update_tagger_jars(ner_tag)
+    # stanfordpath = os.environ["CORENLP_3_6_0_PATH"]
+    # ner_tag = StanfordNERTagger(os.path.join(stanfordpath, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"), \
+                       # os.path.join(stanfordpath, "stanford-corenlp-3.6.0.jar")) #StanfordNERTagger("stanford-corenlp-full-2015-04-20/stanford-corenlp-3.5.2.jar","stanford-corenlp-full-2015-04-20/models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz")
+    ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
+    ner_tag = utils.update_tagger_jars(ner_tag)
     
     # Get tagged questions
     t_quests = [parsetree(q, tokenize = True,  chunks = True, relations=True, lemmata=True) for q in questions]
@@ -489,15 +493,18 @@ def answer_questions(article_path, QA_path):
             _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
             _object_vec = pp.text_to_vector (_object)
 
-            #print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
+            # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
             possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
             # Sort possible answers, try from top
             current_answer = NO
             for ans in possible_answers:
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
+
+                    # if not negated(ans):
                     current_answer = YES
+
                     break
-            #print current_answer
+            # print current_answer
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,wh_word)
@@ -518,13 +525,18 @@ def find_all(answer, object,_object_tags,subject = False):
     tags_list = _object_tags.split()
     object_list = [lemma(object_list[i]) for i in range(len(object_list)) if isInterestingTermTag(tags_list[i]) ] 
     count = 0
-
+    split_answer = answer.split()
     for o in object_list:
-        for v in answer.split():
+        for v in split_answer:
             # print v,o
             if lemma(v.lower()) == o:
 
                 if subject:
+                    negated_answer = mark_negation(split_answer)
+                    idx = split_answer.index(v)
+                    if negated_answer[idx].endswith("_NEG"):
+                        return False
+
                     return True
                 count+=1
                 break
@@ -606,7 +618,7 @@ def main():
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
-    #answer_questions("buffon_article.txt","buffon_QA.txt")
+    answer_questions("buffon_article.txt","buffon_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
