@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 _author_ = 'lrmneves', 'apoorvab'
+#compressed warnings not to break our system
 import warnings
 warnings.filterwarnings("ignore")
+
 from nltk.tag import StanfordNERTagger
 import os
 import sys
