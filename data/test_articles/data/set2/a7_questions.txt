@@ -1,0 +1,6 @@
+Is an acoustic guitar dependent on an external device?#NO
+Is the battente smaller than a classical guitar?#YES
+Is the flamenco guitar similar to the classical guitar?#YES
+Is a guitar an instrument?#YES
+Can guitars be divided into two broad categories?#YES
+Do picks come in many shapes and sizes?#YES

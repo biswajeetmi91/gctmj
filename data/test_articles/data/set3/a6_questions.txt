@@ -1,0 +1,3 @@
+Is Taipei in a valley?#YES
+Was Taipei founded in the 18th century?#YES
+Is the National Palace Museum in Taipei?#YES

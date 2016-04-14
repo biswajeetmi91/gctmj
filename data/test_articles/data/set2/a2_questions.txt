@@ -1,0 +1,9 @@
+Does a violin have four strings?#YES
+Is the violin supported by the left shoulder?#YES
+Is the violin shaped like an hourglass?#YES
+Is the violin a percussion instrument?#YES
+Is a string first tuned to a standard pitch?#YES
+Is each node at an integer division of the string?#YES
+Is the tuning G-D-A-E used for most violin music?#YES
+Is a violin sometimes informally called a fiddle, regardless of the type of music played on it?#YES
+Does the word ``violin'' come from the Middle Latin word vitula, meaning ``stringed instrument''?#YES

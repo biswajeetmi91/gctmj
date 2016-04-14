@@ -1,0 +1,5 @@
+Is Nairobi the capital of Kenya?#YES
+Was Nairobi founded in 1899?#YES
+Is the current estimated population of Nairobi about 6 milion?#NO
+Does the city and its surrounding area also form the Nairobi Province?#YES
+Does the name ``Nairobi'' come from the Maasai phrase Enkare Nyirobi, which translates to ``the place of cool waters''?#YES
