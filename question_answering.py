@@ -201,6 +201,7 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
 
     return True, answer
 
+
 def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
     location_prep = set(["on", "in", "at", "over", "to"])
     initial_size = len(answer.split())
@@ -271,6 +272,7 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
     #     return how_questions()    
 
 def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
+
     search_string = "how many {!VB*+} VB*"
 
     m = search(search_string, q)
@@ -290,16 +292,27 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
     answered = False
     index = 0
     steps_to_rewind = 5
+
     while not answered and index < len(possible_answers):
         current_sentence = sentences[ans_idx[index]].split() 
         curr = possible_answers[index].split()
 
 
         main_idx = curr.index(main_part[0])
-        if main_idx == -1:
+        last_idx = -1
+
+        for idx, w in enumerate(current_sentence):
+            if w.lower() == first_part[-1].lower():
+                last_idx = idx
+
+                break
+
+
+        if main_idx == -1 or last_idx == -1:
             index+=1
             continue
         num_idx = -1
+
         for i in range(steps_to_rewind):
             if main_idx - (i+1) >= 0:
                 if english_pack.is_number(curr[main_idx- (i+1)]):
@@ -587,10 +600,12 @@ def evaluate_qa ():
 
 def main():
     # Answers to binary questions
+
     answer_questions("propaganda_article.txt","propaganda_QA.txt")
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
+    answer_questions("buffon_article.txt","buffon_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
