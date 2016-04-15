@@ -43,7 +43,7 @@ def getQA(article):
 def has_all_main(possible_answer, main_part):
     possible_answer = set(possible_answer.split())
     count = 0
-    if not lemma(main_part[-1].lower()) in possible_answer:
+    if not lemma(main_part[-1].lower()) in possible_answer and not main_part[-1].lower() in possible_answer:
         return False
 
     return True
@@ -54,7 +54,6 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
     possible_answers = model.search(search_word,top=top) 
     possible_answers = [(stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name))for ans in possible_answers] 
     # print possible_answers
-
     if main_part == None:
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
@@ -62,6 +61,7 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
         possible_answers = [w for w in possible_answers if has_all_main(w[0],main_part)]
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
+
 
     return possible_answers,answer_idxs
 
@@ -274,29 +274,103 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
 
     # if wh_value.lower() == "how":
     #     return how_questions()    
+def how_questions(q,sentences,stemmed_sentences):
+    try:
+        if "how many" in q.string.lower():
+            search_string = "how many {!VB*+} VB*"
 
-def how_many_questions(q,sentences,stemmed_sentences):
+            m = search(search_string, q)
+        
+            first_part =[w.string for w in m[0].words[2:-1]]
+            search_string = "VB* *+"
 
-    search_string = "how many {!VB*+} VB*"
+            main_part = [lemma(first_part[0])]
+            m = search(search_string, q)
+            second_part = [w.string for w in m[0].words[1:]]
 
-    m = search(search_string, q)
 
-    first_part =[w.string for w in m[0].words[2:-1]]
-    search_string = "VB* *+"
+            answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
+        elif "how much" in q.string.lower():
 
-    main_part = [lemma(first_part[0])]
-    m = search(search_string, q)
-    second_part = [w.string for w in m[0].words[1:]]
+            search_string = "how much NN*? VB* {!VB*+} VB*"
+        
+
+            m = search(search_string, q)
+            # first_part = []
+            idx = 2
+            while not m[0].words[idx].type.startswith("VB"):
+                # first_part.append(m[0][words[idx]])
+                idx+=1
+            # first_part.append(m[0].words[idx].string)
+            
+            # search_string = "VB* *+"
+
+            main_part = [m[0].words[idx+1].string.lower()]
+            # 
+
+            # first_part =[w.string for w in m[0].words[2:-1]]
+            currency_list = ["eur", "$","ps"]
+
+            all_answers,idxs = get_possible_answers(sentences, main_part, stemmed_sentences)
+            
+            possible_answers = []
+            ans_idxs = []
+            for s in range(len(all_answers)):
+                for c in currency_list:
+                    if c in all_answers[s].split():
+                        possible_answers.append(all_answers[s])
+                        ans_idxs.append(all_answers[s].split().index(c))
+
+            if len(possible_answers) == 0:
+                print all_answers[0]
+            else:
+                idx = ans_idxs[0] +1
+                pos_ans = possible_answers[0].split()
+                answer = pos_ans[idx]
+                idx +=1
+
+                while english_pack.is_number(pos_ans[idx]) and pos_ans[idx] != "," and pos_ans[idx] != ".":
+                    answer += " " + pos_ans[idx]
+                    idx +=1
+                print fix_punctuation(" ".join([w.string for w in q.words]))
+                print answer + " " + pos_ans[ans_idxs[0]]
+            return True
+
+
+
+            # answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
+        else:
+
+            search_string = "how NN*? VB* {!VB*+} VB*"
+            m = search(search_string, q)
+            idx = 1
+            if m[0].words[idx].type.startswith("N"):
+                while not m[0].words[idx].type.startswith("VB"):
+                    idx+=1
+            idx +=1
+
+            main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
+            first_part = [w.string for w in q.words[idx:]]
+            all_answers,idxs = get_possible_answers(sentences, first_part, stemmed_sentences,main_part)
+            print fix_punctuation(" ".join([w.string for w in q.words]))
+            print sentences[idxs[0]]
+            answered = True
+    except Exception:
+        return False
+    return answered
+
+
+    
+def how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part):
+
     
     answer = first_part + second_part
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer])
-    stem_vector = pp.text_to_vector (stem_answer)
     possible_answers,ans_idx = get_possible_answers(sentences,stem_answer, stemmed_sentences,main_part)
 
     answered = False
     index = 0
     steps_to_rewind = 5
-
     while not answered and index < len(possible_answers):
         current_sentence = sentences[ans_idx[index]].split() 
         curr = possible_answers[index].split()
@@ -331,10 +405,18 @@ def how_many_questions(q,sentences,stemmed_sentences):
                 num_idx-=1
                 
             number = " ".join(current_sentence[num_idx:end_idx])
+
             if number != "," and number != ".":
 
+                t = parsetree(" ".join(first_part))
+                final_ans = []
+                for w in t.words:
+                    if not w.type.startswith("N") and not w.type.startswith("J"):
+                        break
+                    else:
+                        final_ans.append(w.string) 
                 print fix_punctuation(" ".join([w.string for w in q.words]))
-                print fix_punctuation(number + " " + " ".join(first_part) + ".")
+                print fix_punctuation(number + " " + " ".join(final_ans) + ".")
                 answered = True
                 break
         index+=1
@@ -355,7 +437,6 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
 
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
-    stem_vector = pp.text_to_vector (stem_answer)
 
     #order possible answers by similarity
 
@@ -372,45 +453,41 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
         current_sentence = sentences[ans_idx[index]].split() 
 
         answer = answer_start
-        if pp.cosine_sim(stem_vector, pp.text_to_vector (" ".join( \
-            [utils.stemm_term(w) for w in possible_answers[index].split()]))) > cosine_threshold:
+        
             
-            #if we find the immutable part of the question on the possible answer, we add the location prep
-            #to our answer and look for the NP after that.
+        #if we find the immutable part of the question on the possible answer, we add the location prep
+        #to our answer and look for the NP after that.
 
-            # we find the index of the last verb on the question
-            curr = possible_answers[index].split()
+        # we find the index of the last verb on the question
+        curr = possible_answers[index].split()
 
-            assert len(curr) == len(current_sentence)
-                
-            last_word = utils.stemm_term(answer.split()[-1])
-            curr_idx = -1
-    
-            for i in range(len(curr)):
-                if utils.stemm_term(curr[i]) == last_word:
-                    curr_idx = i
-                    break   
+        assert len(curr) == len(current_sentence)
             
-            if curr_idx == -1:
-                index +=1
-                continue
-            
-            curr_idx+=1
-            answered, ans = handle_wh(wh_value,curr,curr_idx,current_sentence, sentences[ans_idx[index]],answer,ner_tag)
+        last_word = utils.stemm_term(answer.split()[-1])
+        curr_idx = -1
 
-            if not answered:
-                if probable_answer == "":
-                    probable_answer = ans
-                index +=1
-                continue
-            else:
-                answer = ans
-                break
+        for i in range(len(curr)):
+            if utils.stemm_term(curr[i]) == last_word:
+                curr_idx = i
+                break   
+        
+        if curr_idx == -1:
+            index +=1
+            continue
+        
+        curr_idx+=1
+        answered, ans = handle_wh(wh_value,curr,curr_idx,current_sentence, sentences[ans_idx[index]],answer,ner_tag)
+
+        if not answered:
+            if probable_answer == "":
+                probable_answer = ans
+            index +=1
+            continue
+        else:
+            answer = ans
+            break
         index +=1
-        if index ==len(possible_answers) and cosine_threshold > 0.05:
-            cosine_threshold/=2
-            probable_answer = ""
-            index = 0
+    
     if answered:
         print fix_punctuation(original_q)
         print fix_punctuation(answer)
@@ -445,7 +522,7 @@ def answer_questions(article_path, QA_path):
    
     # Vectorize document
     sentences ,stemmed_sentences,documents = pre_processing(article_path)
-    model = Model(documents=documents, weight=TFIDF)
+    model = Model(documents=documents, weight=TF)
     # model.similarity(documents[1],)
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
@@ -504,6 +581,7 @@ def answer_questions(article_path, QA_path):
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
 
                     # if not negated(ans):
+
                     current_answer = YES
 
                     break
@@ -511,8 +589,8 @@ def answer_questions(article_path, QA_path):
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
-        elif question_type == "MEDIUM_HOW_MANY":
-            answered = how_many_questions(t_q,sentences,stemmed_sentences)
+        elif question_type == "MEDIUM_HOW":
+            answered = how_questions(t_q,sentences,stemmed_sentences)
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
@@ -529,21 +607,23 @@ def find_all(answer, object,_object_tags,subject = False):
     object_list = [lemma(object_list[i]) for i in range(len(object_list)) if isInterestingTermTag(tags_list[i]) ] 
     count = 0
     split_answer = answer.split()
+    negated_answer = mark_negation(split_answer)
+
     for o in object_list:
         for v in split_answer:
             # print v,o
             if lemma(v.lower()) == o:
+                idx = split_answer.index(v)
+                if negated_answer[idx].endswith("_NEG"):
 
-                if subject:
-                    negated_answer = mark_negation(split_answer)
-                    idx = split_answer.index(v)
-                    if negated_answer[idx].endswith("_NEG"):
                         return False
+                if subject:
 
                     return True
                 count+=1
                 break
 
+    
     return count == len(object_list)
 
 def pre_processing (filename):
@@ -580,8 +660,8 @@ def classify_question (tagged_question):
     wh_word = ""
     wh_question_set = set(["where","when"])
 
-    if "how many" in tagged_question.string.lower():
-        question_type = "MEDIUM_HOW_MANY"
+    if "how" in tagged_question.string.lower():
+        question_type = "MEDIUM_HOW"
     else:
         for w in tagged_question.words:
             if w.string.lower() in wh_question_set:
@@ -621,7 +701,8 @@ def main():
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
-    # answer_questions("buffon_article.txt","buffon_QA.txt")
+    answer_questions("buffon_article.txt","buffon_QA.txt")
+    answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
