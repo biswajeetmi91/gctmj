@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 from nltk.tokenize.punkt import PunktSentenceTokenizer
 import nltk
 from nltk.parse.stanford import StanfordParser
@@ -11,40 +12,21 @@ import pprint
 import sys
 import main_verb_decomposition as mvd
 import utils
+import signal
 
 def write_trees(intree,sentences): 
 	intree = "input_tree.txt"
 	fp = open(intree,"w")
 	for sent in sentences:
-		sent = sent.rstrip('.')
+		#print sent
+		#sent = sent.rstrip('.')
 		parseTree = list(parser.raw_parse(sent))
-
 		# the parse tree for the entire sentence
 		root = parseTree[0]
 		tree1 = str(root).replace("\n","")
 		tree1 = tree1.replace("\t","")
 		fp.write(tree1+"\n")
 	fp.close()
-
-# trial function to traverse parse tree
-def getNodes(parent):
-    for node in parent:
-    	#print type(node)
-        if type(node) is nltk.tree.ParentedTree:
-            #if node.label() == 'ROOT':
-            #    print "======== Sentence ========="
-            #    print "Sentence:", " ".join(node.leaves())
-            #else:
-            #    print "Label:", node.label()
-            #    print "Leaves:", node.leaves()
-            if node.label() == 'NP':
-               	print "PRINT THE NIUNS"
-               	leaves = node.leaves()
-               	l = [(word,leaves.index(word)) for word,pos in node.pos() if pos[:2]=='NN']
-              	print l
-            getNodes(node)
-        #else:
-        #    print "Word:", node
 
 def make_questions(qtree,rootleaves,qlist,sensedlist):
 	for node in qtree:
@@ -129,6 +111,7 @@ def main():
 	
 	tsurgeon_path = 'stanford-tregex-2014-10-26'
 	supersense_path = 'SupersenseTagger'
+	factext_path = 'FactualStatementExtractor'
 	'''
 	stanford_path = os.environ["CORENLP_3_6_0_PATH"]
 	parser = StanfordParser(os.path.join(stanford_path, "stanford-corenlp-3.6.0.jar"),
@@ -136,11 +119,29 @@ def main():
 	'''
 	inputfile = sys.argv[1]
 
+	fpinp = open(inputfile,"r")
+	input_data = fpinp.read()
+
+	# first start the postag server for the factual extractor
+	factrunner = subprocess.Popen("bash ./runStanfordParserServer.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE,
+		cwd = factext_path,preexec_fn=os.setsid)
+
+	# first call the factual statement extractor to get the list of simpler sentences
+	factsendCommand = subprocess.Popen("bash ./simplify.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE, cwd = factext_path)
+	input_sentences = factsendCommand.communicate(input_data)
+	sentences = []
+	for s in input_sentences:
+		ssplits = s.split("\n")
+		sentences += [x for x in ssplits if len(x) > 0]
+	print len(sentences)
+	sentences = sentences[:-3]
+	print len(sentences)
+	os.killpg(os.getpgid(factrunner.pid), signal.SIGTERM)
+	'''
 	with open(inputfile) as f:
 		tokenizer = PunktSentenceTokenizer()
 		sentences = tokenizer.tokenize(f.read().decode('utf-8').replace("\n"," "))
-		print len(sentences)
-
+	'''
 	# write the parse trees to a file to apply the tregex rules
 	intree = "input_tree.txt"
 	write_trees(intree,sentences)
@@ -161,29 +162,29 @@ def main():
 	
 	# got the modified parse trees
 	outlist = output.split("\n")
-	print len(outlist)
-
+	
 	# now on to question generation.
 	# create parented trees for the converted sentences
 	# open a file to write the questions
-	qfp = open("questions.txt","w")
+	#qfp = open("questions.txt","w")
 	for new_tree_string in outlist:
 		if new_tree_string is None or len(new_tree_string) == 0:
 			# "EOF REACHED"
 			break
 		ntree = ParentedTree.fromstring(new_tree_string)
 		# print the modified tree
-		print ntree.pretty_print()
+		#print ntree.pretty_print()
 		root_node = ntree[0]
 		# make an empty list to hold question type and indices
 		questionlist = []
 		words = ntree.leaves()
+		print words
 		# run the super sense tagger here
 		proc = subprocess.Popen("bash run.sh\n",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE, cwd = supersense_path)
 		phrase = " ".join(words)+"\n"
 		out= proc.communicate(phrase)
 		sensed = out[0]
-		print sensed
+		#print sensed
 		# convert the sensed table to a list
 		sensedlist = [[d for d in t.split("\t")] for t in sensed.split("\n")][:-2]
 		make_questions(ntree,words,questionlist,sensedlist)
@@ -192,22 +193,18 @@ def main():
 			new_ntree = ParentedTree.fromstring(new_tree_string)
 			new_ntree[q[2]].remove(new_ntree[q[1]])
 			words = new_ntree.leaves()
-			'''
-			if q[0] == 'where':
-				phrase = [words[i] for i in range(q[1],q[2]+1)]
-				tags = nertagger.tag(phrase)
-				if tags[-1][1] == 'PERSON':
-					q[0] = 'whom'
-			'''
 			qstring = q[0]+" "
 			qstring += " ".join(words)
 			#qstring += " ".join([words[i] for i in range(0,len(words)) if i not in range(q[1],q[2]+1)])
 			print "##QUESTION##"
 			print qstring
-			print mvd.getSentenceWithAux(qstring)
-			qfp.write(qstring+"\n")
+			new_qstring = mvd.getSentenceWithAux(qstring)
+			new_qstring = " ".join(new_qstring)
+			print "####MODIFIED#####"
+			print new_qstring
+			#qfp.write(new_qstring+"\n")
 
-	qfp.close()
+	#qfp.close()
 
 
 if __name__ == '__main__': main()
