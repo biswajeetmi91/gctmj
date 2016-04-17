@@ -18,7 +18,8 @@ import json
 import string
 import utils
 from nltk.sentiment.util import mark_negation
-#import configuration
+# import configuration
+import re
 
 
 '''
@@ -539,14 +540,15 @@ def answer_questions(article_path, QA_path):
     YES = "YES"
     NO = "NO"
     questions, ANSWERS = getQA(QA_path)
-   
+
     # Vectorize document
     sentences ,stemmed_sentences,documents = pre_processing(article_path)
+    
+    #print documents
     model = Model(documents=documents, weight=TF)
     # model.similarity(documents[1],)
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
-
     #  Update Environment Variables
     # stanfordpath = os.environ["CORENLP_3_6_0_PATH"]
     # ner_tag = StanfordNERTagger(os.path.join(stanfordpath, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"), \
@@ -573,26 +575,20 @@ def answer_questions(article_path, QA_path):
         answered = False
 
         question_type, wh_word = classify_question (t_q)
+        #print t_q.words
 
         if question_type == "EASY":
-            t_q = t_q.words
             total_answers +=1
             num_q += 1
-            #if (t_q[0].type.startswith("VB") or t_q[0].type == "MD" or t_q[0].type.startswith("N")):
-            j = 2
-
-            while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
-                j += 1
             
-            _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
-            _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
-            _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
-            _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
-            _object_vec = pp.text_to_vector (_object)
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            # Vectorize object
+            #_object_vec = pp.text_to_vector (_object)
 
             # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
             possible_answers,_ = get_possible_answers(sentences,_object,stemmed_sentences,None)
-
 
             current_answer = NO
             for ans in possible_answers:
@@ -601,7 +597,6 @@ def answer_questions(article_path, QA_path):
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
 
                     # if not negated(ans):
-
                     current_answer = YES
 
                     break
@@ -611,11 +606,30 @@ def answer_questions(article_path, QA_path):
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
         elif question_type == "MEDIUM_HOW":
             answered = how_questions(t_q,sentences,stemmed_sentences)
+        elif question_type == "MEDIUM_WHAT":
+            print questions[idx]
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            subject_sentence = _subject.split()
+
+            verb = subject_sentence[0]
+
+            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+            
+            mt = main_part.strip().split()
+            
+            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+            
+            #idx = 
+            print what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
+            #break
+            #print possible_answers
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
 
-    return float(correct_answer)/total_answers*100, num_q
+    #return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
     tag = tag.lower()
@@ -655,14 +669,17 @@ def find_all(answer, object,_object_tags,subject = False):
                 if len(v_syn) == 0:
                     continue
                 v_syn = v_syn[0]
-                if wordnet.similarity(o_syn, v_syn) > 0.5:
-                    idx = split_answer.index(v)
-                    if negated_answer[idx].endswith("_NEG"):
+                try:
+                    if wordnet.similarity(o_syn, v_syn) > 0.5:
+                        idx = split_answer.index(v)
+                        if negated_answer[idx].endswith("_NEG"):
                             return False
-                    if subject:
-                        return True
-                    new_count+=1
-                    break
+                        if subject:
+                            return True
+                        new_count+=1
+                        break
+                except:
+                    continue
         count = new_count
 
 
@@ -708,6 +725,8 @@ def classify_question (tagged_question):
 
     if "how" in tagged_question.string.lower():
         question_type = "MEDIUM_HOW"
+    elif "what" in tagged_question.string.lower():
+        question_type = "MEDIUM_WHAT"
     else:
         for w in tagged_question.words:
             if w.string.lower() in wh_question_set:
@@ -721,6 +740,77 @@ def classify_question (tagged_question):
         question_type = "EASY"
 
     return question_type, wh_word
+
+def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
+
+    main_words = main_part.split()
+    best_answer_idx = -1
+    print main_part
+
+    if len (main_words) < 3:
+        # Look for a sentence which begins with the words
+        for i, ans in enumerate (stemmed_sentences):
+            words = ans.split()
+            # Replace Non characters by space
+            #line = re.sub(r"[^A-Z]", " ", line)
+            if words[0] == main_words[0]:# and (words[2] == main_words[1] or words[3] == main_words[1] or words[4] == main_words[1]):
+                j = 1
+                #length = len (main_words[0]) + len (main_words[1]) + 1
+                # Ignore any word with special characters
+                while set('[~!@#$%^&*()_+{}":;\']+$').intersection(words[j]):
+                    #length += len (words[j]) + 1
+                    j += 1
+                if words[j] == main_words[1]:
+                    split_sentences = sentences[i].split()
+                    # Capitalize first word
+                    split_sentences[j + 1] = split_sentences[j + 1].title()
+                    #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
+                    return sentences[i]
+    else:
+        words_matched = 0
+        window = len (main_words) + 5
+        # Search for the main part in a window
+        for i, ans in enumerate (possible_answers):
+            words = ans.split()
+            max_match = 0
+            best_answer_idx = -1
+            for j in range (0, len(words)):
+                maxIdx = j + window
+                if maxIdx > len(words):
+                    maxIdx = len(words)
+                for k in range (j, maxIdx):
+                    if words_matched == len (main_words):
+                        return sentences[answer_idx[i]]
+                    if words[k] == main_words[words_matched]:
+                        words_matched += 1
+                if max_match < words_matched:
+                    max_match = words_matched
+                    best_answer_idx = i
+                words_matched = 0
+
+    if best_answer_idx > -1:
+        return sentences[answer_idx[best_answer_idx]]
+    elif len (possible_answers) > 0:
+        return sentences[answer_idx[0]]
+    else:
+        return sentences[0]
+
+def get_subject_object (t_q):
+    t_q = t_q.words
+    
+    j = 2
+
+    while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
+        j += 1
+    
+    _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
+    #print _object
+    _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
+    _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
+    #print _subject
+    _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
+
+    return _object, _object_tags, _subject, _sub_tags
 
 def evaluate_qa ():
     acc = 0.0
@@ -743,12 +833,14 @@ def evaluate_qa ():
 def main():
     # Answers to binary questions
 
-    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # answer_questions("beckham_article.txt","beckham_QA.txt")
+
+    answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("a10.txt","test_qs.txt")
+    answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
-    # answer_questions("spanish_article.txt","spanish_QA.txt")
-    # answer_questions("buffon_article.txt","buffon_QA.txt")
-    # answer_questions("hercules_article.txt","hercules_QA.txt")
+    answer_questions("spanish_article.txt","spanish_QA.txt")
+    answer_questions("buffon_article.txt","buffon_QA.txt")
+    answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
