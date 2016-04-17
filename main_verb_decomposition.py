@@ -24,6 +24,13 @@ parser = StanfordParser()
 
 
 def main():
+
+	# print 'walk = ' , en.verb.tense('walk')
+	# print 'walked = ' , en.verb.tense('walked')
+	# print 'walks = ' , en.verb.tense('walks')
+	# print 'walking = ' , en.verb.tense('walking')
+	# return
+
 	try:
 		global parser
 		INPUT_FILE = 'qgen-old/input_sentences.txt'
@@ -41,11 +48,13 @@ def main():
 		# sentences = ['Sentence 1','Sentence 2','Sentence 3']
 		outputSentences = []	
 		for sentence in sentences:
+			print sentence
 			if len(sentence) == 0: 
 				continue
 			parseTree = list(parser.raw_parse((sentence)))
-			sentence = getSentenceWithAuxFromParseTree(parseTree)
-			# print sentence
+			# sentence = getSentenceWithAuxFromParseTree(parseTree)
+			sentence = generateYesNoQuestionFromParseTree(parseTree)
+			print sentence
 			outputSentences.append(' '.join(sentence))
 		
 		open(OUTPUT_FILE,'w').write('\n'.join(outputSentences))
@@ -59,6 +68,98 @@ def getSentenceWithAux(sentence):
 	global parser
 	parseTree = list(parser.raw_parse((sentence)))
 	return getSentenceWithAuxFromParseTree(parseTree)
+
+def generateYesNoQuestionFromParseTree(parseTree):
+	try:
+		root = parseTree[0]
+		print root.pretty_print()
+		idx = -1
+		question = ['']
+		state = 0
+		labels = []
+		newTense = None
+		for s in root.subtrees():
+				# each subtree has some leaves
+				# leaves can be single or multiple words depending on the POS. (POS are heirarchical so one word can even belong to multiple POS)
+				# for example a verb like 'is' may be tagged with both VP and VBZ. I'm only interested in the terminal POS and count the word once which is why
+				# i'm removing all phrase parts of speech.
+				leaves = s.leaves()
+				
+				# state 0 : looking for the first verb
+				# state 0-1 : found the first verb to be an auxilliary verb. 
+							# Move it to the front of the question and look for the main verb at the next position. 
+							# Remember the new tense required.
+				# state 0-2 : found the first verb to be a non-aux verb. Insert aux verb at the start and change the tense of this verb.
+							# Remember the tense of this original verb and the new tense.
+				# state 1 - 3 (check any pos word) : if prev state is 1, we need a main verb now. If main verb is found, then nothing needs to be done, since it's already in the 
+				# correct tense
+				# state 1 - 2 (check any pos word) : if main verb is not found, then we need need to insert a do (?) at this place (depending on the previous tense) 
+				# state 2 - 2 : If any verb is found, correct it's tense if required - depending on prev tense.
+				labels.append(s.label())
+				newTense = None if s.label() == 'S' else newTense
+				if len(leaves) == 1 and str(s.label()) not in posTags['phrases']:
+					idx += 1
+					pos = s.label()[:2]
+					leaf = str(leaves[0])
+					if state == 0:
+						if pos != 'VB':
+							question.append(leaf)
+							continue
+						else:
+							tense = en.verb.tense(leaf)
+							# print 'tense of ', leaf, ' = ', tense
+							simplePast = en.verb.past(leaf)
+							simplePresent = en.verb.present(leaf)
+							principlePresent = en.verb.present_participle(leaf)
+							# if simplePresent in ['be','can','could','do','have','will','would','make']:
+							print 'simple present = ', simplePresent
+							if simplePresent in ['do','be']:
+								state = 1
+								question[0] = leaf
+								print 'putting ', leaf, ' at the start'
+								originalTense = tense
+							else:
+								if tense == 'past':
+									question[0] = 'did'
+								if tense == '3rd singular present':
+									question[0] = ('does')
+								if tense == 'infinitive':
+									question[0] = ('do')
+								newTense = 'infinitive'
+								# print 'setting newTense = ', newTense
+								question.append(simplePresent)
+							state = 2
+						continue
+					if state == 1:
+						if pos == 'VB':
+							# main verb found right after the aux verb. do nothing
+							question.append(leaf)
+							state = 3
+						else:
+							# main verb not yet found. insert a do
+							state = 2
+							question.append('do')
+							question.append(leaf)
+						continue
+					if state == 2 or state == 3:
+						if pos == 'VB':
+							# print 'new tense later = ' , newTense
+							if newTense is None:
+								question.append(leaf)
+							else:
+								if newTense == 'infinitive':
+									question.append(en.verb.infinitive(leaf))
+								else:
+									question.append(leaf)
+						else:
+							question.append(leaf)
+
+						continue
+	
+	except Exception as error:
+		print 'EXCEPTION CAUGHT in generateYesNoQuestionFromParseTree()', error
+	print labels
+	return question
 
 def getSentenceWithAuxFromParseTree(parseTree):
 	try:
