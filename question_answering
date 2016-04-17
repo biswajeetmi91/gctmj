@@ -80,6 +80,7 @@ def is_date(string):
                 if w.lower() in bad_input:
                     return False
         else:
+
             date_parse(string)
             if string.lower() in bad_input:
                 return False
@@ -301,9 +302,9 @@ def how_questions(q,sentences,stemmed_sentences):
     try:
         if "how many" in q.string.lower():
             search_string = "how many {!VB*+} VB*"
-
             m = search(search_string, q)
             if len(m) != 0:
+
                 first_part =[w.string for w in m[0].words[2:-1]]
                 search_string = "VB* *+"
 
@@ -328,7 +329,12 @@ def how_questions(q,sentences,stemmed_sentences):
                 while not m[0].words[idx].type.startswith("VB"):
                     idx+=1
 
-            main_part = [m[0].words[idx+1].string.lower()]
+                main_part = [m[0].words[idx+1].string.lower()]
+            else:
+                main_part = [ w.string.lower() for w in q.words[idx+2:]]
+          
+
+            # first_part =[w.string for w in m[0].words[2:-1]]
             currency_list = ["eur", "$","ps"]
 
             all_answers,idxs = get_possible_answers(sentences, main_part, stemmed_sentences)
@@ -356,15 +362,14 @@ def how_questions(q,sentences,stemmed_sentences):
                 print answer + " " + pos_ans[ans_idxs[0]]
             return True
 
-
-
-            # answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
         else:
 
             search_string = "how NN*? VB* {!VB*+} VB*"
             m = search(search_string, q)
 
             idx = 1
+
+
             if len(m) != 0:
 
                 if m[0].words[idx].type.startswith("N"):
@@ -375,6 +380,7 @@ def how_questions(q,sentences,stemmed_sentences):
                 while not q.words[idx].type.startswith("VB"):
                      idx+=1
 
+
             idx +=1
             main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
             first_part = [w.string for w in q.words[idx:]]
@@ -382,7 +388,6 @@ def how_questions(q,sentences,stemmed_sentences):
             print fix_punctuation(" ".join([w.string for w in q.words]))
             print sentences[idxs[0]]
             answered = True
-    
     except Exception:
         traceback.print_exc()
         return False
@@ -633,8 +638,27 @@ def answer_questions(article_path, QA_path):
             print what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
             #break
             #print possible_answers
-        else:
-            print "HARD"
+
+        elif question_type == "MEDIUM_WHO":
+            print questions[idx]
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            subject_sentence = _subject.split()
+
+            verb = subject_sentence[0]
+
+            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+            
+            mt = main_part.strip().split()
+            
+            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+            
+            #idx = 
+            print who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
+            #break
+            #print possible_answers
+
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
     else:
@@ -696,7 +720,6 @@ def find_all(answer, object,_object_tags,subject = False):
                     continue
         count = new_count
 
-
     
     return count == len(object_list)
 
@@ -709,12 +732,10 @@ def pre_processing (filename):
     seen_persons = set()
 
     for i in range(len(tag_sentences)):
-        if i > 0 and LAST_PERSON != "":
-            tag_sentences[i].words.append(LAST_PERSON)
         for w in range(len(tag_sentences[i].words)):
             if tag_sentences[i].words[w].type.lower().endswith("pers") or \
-            tag_sentences[i].words[w].string.lower() in seen_persons or  \
-            tag_sentences[i].words[w].type.startswith("NNP"):
+            tag_sentences[i].words[w].string.lower() in seen_persons or \
+             tag_sentences[i].words[w].type.startswith("NNP"):
                 
                 LAST_PERSON =tag_sentences[i].words[w].string
                 seen_persons.add(LAST_PERSON.lower())
@@ -739,8 +760,9 @@ def classify_question (tagged_question):
 
     if "how" in tagged_question.string.lower():
         question_type = "MEDIUM_HOW"
-    elif "what" in tagged_question.string.lower():
+    elif "what" in tagged_question.string.lower() or "who" in tagged_question.string.lower() or "which" in tagged_question.string.lower():
         question_type = "MEDIUM_WHAT"
+   
     else:
         for w in tagged_question.words:
             if w.string.lower() in wh_question_set:
@@ -754,6 +776,18 @@ def classify_question (tagged_question):
         question_type = "EASY"
 
     return question_type, wh_word
+
+def remove_stop_words (sentence):
+
+    wordlist = ['of', 'a', 'the']
+
+    new_sentence = []
+
+    for word in sentence:
+        if word not in wordlist:
+            new_sentence.append(word)
+
+    return new_sentence
 
 def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
 
@@ -780,27 +814,102 @@ def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, 
                     #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
                     return sentences[i]
     else:
-        words_matched = 0
+        main_words = remove_stop_words (main_part.split())
         window = len (main_words) + 5
+        max_match = 0
+        best_answer_idx = -1
         # Search for the main part in a window
         for i, ans in enumerate (possible_answers):
             words = ans.split()
-            max_match = 0
-            best_answer_idx = -1
             for j in range (0, len(words)):
                 maxIdx = j + window
+                words_matched = 0
+                copy = []
+                for w in main_words:
+                    copy.append (w)
                 if maxIdx > len(words):
                     maxIdx = len(words)
                 for k in range (j, maxIdx):
                     if words_matched == len (main_words):
                         return sentences[answer_idx[i]]
+                    '''
                     if words[k] == main_words[words_matched]:
                         words_matched += 1
+                    '''
+                    if words[k] in copy:
+                        #print words[k], k, j, maxIdx
+                        words_matched += 1
+                        copy.remove (words[k])
                 if max_match < words_matched:
                     max_match = words_matched
                     best_answer_idx = i
-                words_matched = 0
 
+    if best_answer_idx > -1:
+        return sentences[answer_idx[best_answer_idx]]
+    elif len (possible_answers) > 0:
+        return sentences[answer_idx[0]]
+    else:
+        return sentences[0]
+
+def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
+
+    main_words = main_part.split()
+    best_answer_idx = -1
+    
+    if len (main_words) < 3:
+        # Look for a sentence which begins with the words
+        for i, ans in enumerate (stemmed_sentences):
+            words = ans.split()
+            # Replace Non characters by space
+            #line = re.sub(r"[^A-Z]", " ", line)
+            if words[0] == main_words[0]:# and (words[2] == main_words[1] or words[3] == main_words[1] or words[4] == main_words[1]):
+                j = 1
+                #length = len (main_words[0]) + len (main_words[1]) + 1
+                # Ignore any word with special characters
+                while set('[~!@#$%^&*()_+{}":;\']+$').intersection(words[j]):
+                    #length += len (words[j]) + 1
+                    j += 1
+                if words[j] == main_words[1]:
+                    split_sentences = sentences[i].split()
+                    # Capitalize first word
+                    split_sentences[j + 1] = split_sentences[j + 1].title()
+                    #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
+                    return sentences[i]
+    else:
+        #print possible_answers
+        main_words = remove_stop_words (main_part.split())
+        #print main_words
+        window = len (main_words) + 5
+        best_answer_idx = -1
+        max_match = 0
+        # Search for the main part in a window
+        for i, ans in enumerate (possible_answers):
+            words = ans.split()
+            for j in range (0, len(words)):
+                maxIdx = j + window
+                words_matched = 0
+                copy = []
+                for w in main_words:
+                    copy.append (w)
+                if maxIdx > len(words):
+                    maxIdx = len(words)
+                for k in range (j, maxIdx):
+                    if words_matched == len (main_words):
+                        return sentences[answer_idx[i]]
+                    '''
+                    if words[k] == main_words[words_matched]:
+                        words_matched += 1
+                    '''
+                    if words[k] in copy:
+                        #print words[k], k, j, maxIdx
+                        words_matched += 1
+                        copy.remove (words[k])
+                if max_match < words_matched:
+                    #print words_matched, ans, i
+                    max_match = words_matched
+                    best_answer_idx = i
+
+    #print best_answer_idx
     if best_answer_idx > -1:
         return sentences[answer_idx[best_answer_idx]]
     elif len (possible_answers) > 0:
@@ -846,9 +955,8 @@ def evaluate_qa ():
 
 def main():
 
-
     answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # answer_questions("a10.txt","test_qs.txt")
+    #answer_questions("a2.txt","test_qs.txt")
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")
@@ -856,7 +964,7 @@ def main():
     answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
-    evaluate_qa ()
+    #evaluate_qa ()
 
 if __name__ == "__main__":
     main()
