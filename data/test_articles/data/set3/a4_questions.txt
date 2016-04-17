@@ -1,4 +1,13 @@
-Is Antwerp a city?#YES
-Is Antwerp a municipality?#YES
-Is Antwerp in Belgium?#YES
-Why is Antwerp important to fashion?#YES
+Was Abraham Lincoln the sixteenth President of the United States?#YES
+Did Lincoln sign the National Banking Act of 1863?#YES
+Did his mother die of pneumonia?#NO
+Did Lincoln beat John C. Breckinridge in the 1860 election?#YES
+Was Abraham Lincoln the first President of the United States?#NO
+Did Lincoln start his political career in 1832?#YES
+Did Lincoln ever represent Alton & Sangamon Railroad?#YES
+Did Lincoln win the election of 1860?#YES
+Do scholars rank lincoln among the top three presidents?#YES
+Did lincoln have 18 months of schooling?#YES
+Was Lincoln chosen as a presidential candidate in 1860?#YES
+Did Abraham Lincoln live in the Frontier?#YES
+Did Lincoln's Wife's Family support slavery?#YES

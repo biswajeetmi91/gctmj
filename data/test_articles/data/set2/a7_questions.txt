@@ -1,6 +1,14 @@
-Is an acoustic guitar dependent on an external device?#NO
-Is the battente smaller than a classical guitar?#YES
-Is the flamenco guitar similar to the classical guitar?#YES
-Is a guitar an instrument?#YES
-Can guitars be divided into two broad categories?#YES
-Do picks come in many shapes and sizes?#YES
+Does Romania border Hungary?#YES
+Is Romania a secular state?#YES
+Is the president elected by popular vote?#YES
+Is the Romanian economy doing well?#YES
+Are there many Roma in Romania?#NO
+Does Romania share a border with Ukraine?#YES
+Did Romania declare neutrality during World War I?#YES
+Does Romania share the same language with Moldova?#YES
+Is it true that romania has a population of 21,698,181?#YES
+Is Romania a semi-presidential unitary state?#YES
+Is Romania a semi-presidential democratic republic where executive functions are shared between the president and the prime minister ?#YES
+Was Gellu Naum the leader of the surrealist movement in Romania ?#YES
+Was the Bucharest Metro only opened in 1979 ?#YES
+Is romania -LRB- , -RRB- a country in southeastern europe?#YES

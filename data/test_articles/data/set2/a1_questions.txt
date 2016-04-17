@@ -1,7 +1,16 @@
-Are pianos used in Western music?#YES
-Are "upright pianos" called "vertical pianos"?#YES
-Did Bartolomeo Cristofori invent the modern piano?#YES
-Is the left-most pedal on a grand piano called the una corda?#YES
-Is it advantageous for a grand piano's metal plate to be quite massive?#YES
-Is the mechanism in an upright piano perpendicular to its keys?#YES
-Do older pianos have more keys than modern pianos?#NO
+Is Liechtenstein bordered by Switzerland?#YES
+Is Liechtenstein the smallest German-speaking country in the world?#YES
+Was Liechtenstein part of the ancient Roman province of Raetia?#YES
+Has Leichtenstein worked to promote the county's image by prosecuting international money-laundering?#YES
+Is there an airport in Liechtenstein?#NO
+Is Liechtenstein heavily urbanized?#NO
+Is Liechtenstein doubly landlocked?#YES
+Does Liechtenstein have an army?#NO
+Does the state court rule on the conformity of laws?#YES
+Was Liechtenstein completed in November 2000?#NO
+Is the museum collection also the national art collection of Liechtenstein ?#YES
+Is there a small heliport at Balzers in Liechtenstein available for charter helicopter flights ?#YES
+Are nationals referred to by the plural : Liechtensteiners ?#YES
+Is it a winter sports resort , although it is perhaps best known as a tax haven ?#YES
+Is it a winter sports resort?#YES
+Is it the smallest german-speaking country in the world?#YES
