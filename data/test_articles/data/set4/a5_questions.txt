@@ -1,0 +1,7 @@
+Is it true that he published a collection in 1738?#NO
+Is it true that thermometer had 100 for the freezing point?#YES
+Was Celsius born in Uppsala in Sweden?#YES
+Was Anders Celsius (November 27, 1701 April 25, 1744) a Swedish astronomer?#YES
+Is The Celsius crater on the Moon named after him?#YES
+Is the Celsius crater on the Moon named after him ?#YES
+Was Celsius born in Uppsala in Sweden ?#YES

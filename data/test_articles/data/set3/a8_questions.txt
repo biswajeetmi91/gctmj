@@ -1,10 +1,15 @@
-Is the standard of living in San Franciscio high?#YES
-Does San Francisco have a high percentage of gay and lesbian individuals?#YES
-Is San Franscico a popular tourist destination?#YES
-Are more residents employed by small businesses than in 1977?#NO
-Was Mission Bay campus opened in 2003#YES
-Was the University of San Fransisco founded in 1855#YES
-Is Golden Gate Park the largest city park#YES
-Is Crissy field an airfield#YES
-Does the de Young museum house the Asian Art Museum#YES
-Is San Francisco also the financial, cultural, and transportation center of the larger San Francisco Bay Area, a region of 7.4 million people?#YES
+Was Woodrow Wilson the thirtieth President of the United States?#NO
+Did Woodrow Wilson create the League of Nations?#YES
+Did the U.S. join the League of Nations?#NO
+Was Wilson a member of the Phi Kappa Psi fraternity?#YES
+Was Wilson an automobile enthusiast?#YES
+Did Wilson's father own slaves?#YES
+Did Wilson support desegregation?#NO
+Did Wilson support the committee system?#NO
+Did Wilson have any siblings?#YES
+Was Wilson awarded the 1919 Nobel Peace Prize?#YES
+Was Wilson a remarkably effective writer and thinker?#YES
+Was Wilson president of the American Political Science Association in 1910 ?#YES
+Did he not cast his ballot for John M. Palmer , the presidential candidate of the National Democratic Party , or Gold Democrats , a short-lived party that supported a gold standard , low tariffs , and limited government ?#YES
+Did Wilson not spend 1914 through the beginning of 1917 trying to keep America out of the war in Europe ?#YES
+Was Wilson , a staunch opponent of antisemitism , sympathetic to the plight of Jews , especially in Poland and in France ?#YES

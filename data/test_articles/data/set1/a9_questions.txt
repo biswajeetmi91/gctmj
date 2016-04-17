@@ -1,3 +1,15 @@
-Do the different species of zebras interbreed?#NO
-Do zebras sleep standing up?#YES
-Have plains zebras been crossed with mountain zebras?#YES
+Are turtles ectothermic?#YES
+Does the mother care for the young?#NO
+Are turtles pets?#YES
+Do sea turtles lay eggs on dry sandy beaches?#YES
+Are Pleurodira known as side-necked turtles?#YES
+Do turtles lay eggs underwater?#NO
+Are turtle eggs leathery and soft?#YES
+Are turtles being examined for longevity genes?#YES
+Are the largest turtles aquatic?#YES
+Is aquatic respiration in Australian freshwater turtles being studied?#YES
+Has this inspired genetic researchers to begin examining the turtle genome for longevity genes ?#YES
+Can turtles take many years to reach breeding age ?#YES
+Are Immature sea turtles not cared for by the adults ?#YES
+Are the Pleurodira sometimes known as the side-necked turtles , a reference to the way they withdraw their heads into their shells ?#YES
+Does the Order Testudines not include both extant -LRB- living -RRB- and extinct species , the earliest known turtles being from around 215 million years ago ?#YES

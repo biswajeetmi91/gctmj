@@ -1,7 +1,0 @@
-Was Pascal a French mathematician?#YES
-Did Pascal have poor health throughout his life?#YES
-Did Pascal write about cycloid before 1658?#NO
-Is there a programming language called Pascal?#YES
-Was he a child prodigy who was educated by his father, a civil servant?#YES
-Was Pascal's earliest work in the natural and applied sciences where he made important contributions to the construction of mechanical calculators, the study of fluids, and clarified the concepts of pressure and vacuum by generalizing the work of Evangelista Torricelli?#YES
-Did Pascal also write in defense of the scientific method?#YES

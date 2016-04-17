@@ -1,10 +1,10 @@
-Berlin
-Melbourne
-Kuala_Lumpur
-Antwerp
-Jakarta
-Taipei
-Montreal
-San_Francisco
-Nairobi
-Saint_Petersburg
+John Adams
+James Monroe
+Millard Fillmore
+Abraham Lincoln
+Ulysses S. Grant
+Grover Cleveland
+Theodore Roosevelt
+Woodrow Wilson
+Calvin Coolidge
+Gerald Ford

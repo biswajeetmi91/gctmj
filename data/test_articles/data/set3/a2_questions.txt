@@ -1,3 +1,9 @@
-Is Melbourne the capital and most populous city in the state of Victoria?#YES
-Is Melbourne home to Australia's busiest seaport?#YES
-Does Melbourne have a large international student community?#YES
+Is James Monrow the fifth president of US?#YES
+Did Monroe' wedding happen at the Trinity Church in New York?#YES
+Was James Monroe President of the United States?#YES
+Did James Monroe attend the College of William and Mary?#YES
+Did James Monroe fight in the Continental Army?#YES
+Is it true that he practiced law in fredericksburg?#YES
+Was Monroe anticlerical?#NO
+Was Monroe appointed Minister to France from 1794 to 1796?#YES
+Had Monroe racked up many debts during his years of public life ?#YES

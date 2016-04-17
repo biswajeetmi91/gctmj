@@ -1,6 +1,18 @@
-Is the city named after the apostle Saint Peter?#YES
-Has the terrain in the city been artificially raised?#YES
-Has Equestrianism been a long tradition, popular among the Tsars and aristocracy?#YES
-Were the city's other names Petrograd (, 1914 -- 1924) and Leningrad (, 1924 -- 1991)?#YES
-Is it often called just Petersburg (-RRB- and is informally known as Piter (-RRB-?#YES
-Founded by Tsar Peter I of Russia on 27 May 1703, was it the capital of the Russian Empire for more than two hundred years (1713 -- 1728, 1732 -- 1918)?#YES
+Was Ford a member of the House of Representatives?#YES
+Was Gerald Ford a member of Delta Kappa Epsilon?#YES
+Did ford get an award called "Congressman's congressman"?#YES
+Did ford attend the University of Michigan?#YES
+Was Ford active about Vietnamese affairs?#YES
+Had Ford's wife married before?#YES
+Is Ford related with the assassination of John F. Kennedy?#YES
+Was Gerald Ford the 38th President of the United States?#YES
+Did Gerald Ford serve as the Republican Minority Leader of the House of Representatives?#YES
+Was Ford an Eagle Scout?#YES
+Has another US President been an Eagle Scout?#NO
+Did Ford need to do extra work to pay for college?#YES
+Have more than five Presidents lived past the age of 90?#NO
+Was Ford released from the hospital?#YES
+Was Ford interred at his Presidential Museum in Grand Rapids, Michigan?#YES
+Is Ford one of only four former Presidents to live to 90 or more years of age ?#YES
+Was Ford the last surviving member of the Warren Commission ?#YES
+Did Grand Rapids supporters not urge him to take on Bartel J. Jonkman , the incumbent Republican congressman ?#NO

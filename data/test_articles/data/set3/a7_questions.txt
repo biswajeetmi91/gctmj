@@ -1,1 +1,8 @@
-Does Montreal contain the largest church in Canada?#YES
+Was Thedore Roosevelt  a member of the Republican Party?#YES
+Does Theodore Roosevelt have a brother?#YES
+Did Theodore Roosevelt go to Harvard?#YES
+Did Theodore Roosevelt study Judo?#NO
+Did Roosevelt receive a Medal of Honor?#YES
+Did Roosevelt study biology?#YES
+Did Roosevelt support racial integration in schools?#YES
+Was Roosevelt's family rich?#YES

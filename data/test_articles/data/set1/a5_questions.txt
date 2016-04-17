@@ -1,5 +1,11 @@
-Are lobsters invertebrates?#YES
-Are lobsters kosher?#NO
-Do lobsters have blue blood?#YES
-Do lobsters feel pain?#YES
-Did the Moche people worship lobsters?#YES
+Are elephants the largest land animals alive today?#YES
+Can an elephant kill a rhinoceros?#YES
+Are elephants good swimmers?#YES
+Are elephant populations in West Africa generally small and fragmented?#YES
+Is the Asian elephant larger than the African?#NO
+Is an elephant's skin tough?#YES
+Are elephants mammals?#YES
+Have elephants been used as working animals?#YES
+Do they prefer forested areas?#YES
+Is an Asian elephant smaller than an African elephant?#YES
+Has tusklessness become a rare abnormality?#NO
