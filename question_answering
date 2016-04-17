@@ -3,6 +3,8 @@ _author_ = 'lrmneves', 'apoorvab'
 #compressed warnings not to break our system
 import warnings
 warnings.filterwarnings("ignore")
+import traceback
+
 
 from nltk.tag import StanfordNERTagger
 import os
@@ -46,8 +48,8 @@ def has_all_main(possible_answer, main_part):
     count = 0
     for w in range(len(main_part)):
         if lemma(main_part[w].lower()) in possible_answer or  main_part[w].lower() in possible_answer:
+
             count +=1
-            
 
     return count
 
@@ -56,14 +58,12 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
 
     possible_answers = model.search(search_word,top=top) 
     possible_answers = [[stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name), ans[0]]for ans in possible_answers] 
-    # print possible_answers
     if main_part == None:
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
     else:
         possible_answers = [w + [has_all_main(w[0],main_part)] for w in possible_answers if has_all_main(w[0],main_part) > 0]
         possible_answers = sorted(possible_answers, key = lambda x: (-x[3], -x[2]))
-        # print possible_answers
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
 
@@ -95,12 +95,14 @@ def get_wh_structure(q, wh_tag):
     if len(m) == 0:
         #This solves ambiguity. If a verb can also be a noun and is misclassified, we change it back to a verb
         for i in range(len(q.words)):
-            if english_pack.is_verb(q.words[i].string) and not q.words[i].type.startswith("V"):
+            if english_pack.is_verb(lemma(q.words[i].string)) and not q.words[i].type.startswith("V"):
                 q.words[i].type = "VB"
                 break
         m = search(search_string, q)
-
-    m = m[0]
+    try:
+        m = m[0]
+    except:
+        print q
     wh_word = m.words[0]
 
     #Creates part of answer that was before the where clause(contextual information)
@@ -361,14 +363,19 @@ def how_questions(q,sentences,stemmed_sentences):
 
             search_string = "how NN*? VB* {!VB*+} VB*"
             m = search(search_string, q)
+
             idx = 1
             if len(m) != 0:
 
                 if m[0].words[idx].type.startswith("N"):
                     while not m[0].words[idx].type.startswith("VB"):
                         idx+=1
-                idx +=1
+                
+            else:
+                while not q.words[idx].type.startswith("VB"):
+                     idx+=1
 
+            idx +=1
             main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
             first_part = [w.string for w in q.words[idx:]]
             all_answers,idxs = get_possible_answers(sentences, first_part, stemmed_sentences,main_part)
@@ -377,6 +384,7 @@ def how_questions(q,sentences,stemmed_sentences):
             answered = True
     
     except Exception:
+        traceback.print_exc()
         return False
     return answered
 
@@ -625,11 +633,13 @@ def answer_questions(article_path, QA_path):
             print what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
             #break
             #print possible_answers
-
+        else:
+            print "HARD"
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
-
-    #return float(correct_answer)/total_answers*100, num_q
+    else:
+        total_answers = 1.
+    return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
     tag = tag.lower()
@@ -660,17 +670,21 @@ def find_all(answer, object,_object_tags,subject = False):
     if count > 1 and count < len(object_list):
         new_count = 0
         for o in object_list:
-            o_syn = wordnet.synsets(lemma(o.lower()))
-            if len(o_syn) == 0:
+            try:
+                o_syn = wordnet.synsets(lemma(o.lower()))
+                if len(o_syn) == 0:
+                    break
+                o_syn= o_syn[0]
+            except:
                 break
-            o_syn= o_syn[0]
             for v in split_answer:
-                v_syn = wordnet.synsets(lemma(v).lower())
-                if len(v_syn) == 0:
-                    continue
-                v_syn = v_syn[0]
                 try:
-                    if wordnet.similarity(o_syn, v_syn) > 0.5:
+                    v_syn = wordnet.synsets(lemma(v).lower())
+                    if len(v_syn) == 0:
+                        continue
+                    v_syn = v_syn[0]
+                
+                    if wordnet.similarity(o_syn, v_syn) > 0.9:
                         idx = split_answer.index(v)
                         if negated_answer[idx].endswith("_NEG"):
                             return False
@@ -719,7 +733,7 @@ def pre_processing (filename):
 
 def classify_question (tagged_question):
     
-    question_type = "EASY"
+    question_type = "HARD"
     wh_word = ""
     wh_question_set = set(["where","when"])
 
@@ -745,7 +759,6 @@ def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, 
 
     main_words = main_part.split()
     best_answer_idx = -1
-    print main_part
 
     if len (main_words) < 3:
         # Look for a sentence which begins with the words
@@ -817,7 +830,7 @@ def evaluate_qa ():
     num = 0
     num_q = 0
     
-    for j in range (1, 7):
+    for j in range (1, 5):
         for i in range (1, 11):
             try:
                 x, y = answer_questions("data/set" + str(j) + "/a" + str(i) + ".txt","data/set" + str(j) + "/a" + str(i) + "_questions.txt")
@@ -825,13 +838,13 @@ def evaluate_qa ():
                 num_q += y
                 num += 1
             except:
-                print "File Not Found"
-
-    print acc/num
+                traceback.print_exc()
+                
+    if num > 0:
+        print acc/num
     print num_q
 
 def main():
-    # Answers to binary questions
 
 
     answer_questions("propaganda_article.txt","propaganda_QA.txt")
