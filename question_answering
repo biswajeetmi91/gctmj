@@ -43,22 +43,26 @@ def getQA(article):
 def has_all_main(possible_answer, main_part):
     possible_answer = set(possible_answer.split())
     count = 0
-    if not lemma(main_part[-1].lower()) in possible_answer and not main_part[-1].lower() in possible_answer:
-        return False
+    for w in range(len(main_part)):
+        if lemma(main_part[w].lower()) in possible_answer or  main_part[w].lower() in possible_answer:
+            count +=1
+            
 
-    return True
+    return count
 
 def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = None,top = 1000):
     global model
 
     possible_answers = model.search(search_word,top=top) 
-    possible_answers = [(stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name))for ans in possible_answers] 
+    possible_answers = [[stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name), ans[0]]for ans in possible_answers] 
     # print possible_answers
     if main_part == None:
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
     else:
-        possible_answers = [w for w in possible_answers if has_all_main(w[0],main_part)]
+        possible_answers = [w + [has_all_main(w[0],main_part)] for w in possible_answers if has_all_main(w[0],main_part) > 0]
+        possible_answers = sorted(possible_answers, key = lambda x: (-x[3], -x[2]))
+        # print possible_answers
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
 
@@ -67,9 +71,18 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
 
 def is_date(string):
     try: 
-        date_parse(string)
-        if string == "at" or string =="on" or string == "." or string == ",":
-            return False
+        bad_input = set(["at","on","of","for","and",".",","])
+        
+        if len(string.split("-")) > 1:
+            for w in string.split("-"):
+                date_parse(w)
+                if w.lower() in bad_input:
+                    return False
+        else:
+
+            date_parse(string)
+            if string.lower() in bad_input:
+                return False
         return True
     except ValueError:
         return False
@@ -155,28 +168,37 @@ def make_lists_equal(stemmed, normal):
 
 def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
     already_seen = set([w.lower() for w in answer.split()])
-  
+    checked_beg = False
     tagged_curr = parsetree(full_sentence).words
-    answer = ""
+    
     date_preposition = set(["in","at","on"])
     #look for the NP after the prep.
-    while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
-        curr_idx +=1
-    
-    while curr_idx < len(curr) and (is_date(tagged_curr[curr_idx].string)\
-    or tagged_curr[curr_idx].type == "DT" or tagged_curr[curr_idx].type == ","):
-        if not have_seen(already_seen,current_sentence,curr_idx):
-            answer+= " " + current_sentence[curr_idx]
-        curr_idx +=1
-     
-    answer = answer.split()
-    curr_idx -= 1
-    while not is_date(tagged_curr[curr_idx].string) and len(answer) > 0:
-        del answer[-1]
-        curr_idx-=1
+    found_answer = False
+    while not found_answer:
+        answer = ""
+        while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
+            curr_idx +=1
+        
+        while curr_idx < len(curr) and (is_date(tagged_curr[curr_idx].string)\
+        or tagged_curr[curr_idx].type == "DT" or tagged_curr[curr_idx].type == ","):
+            if not have_seen(already_seen,current_sentence,curr_idx):
+                answer+= " " + current_sentence[curr_idx]
+            curr_idx +=1
+        
 
-    if len(answer) == 0:
-        return False,""
+        answer = answer.split()
+        curr_idx -= 1
+        while not is_date(tagged_curr[curr_idx].string) and len(answer) > 0:
+            del answer[-1]
+            curr_idx-=1
+
+        if len(answer) == 0 and checked_beg:
+            return False,""
+        elif len(answer) == 0:
+            curr_idx = 0
+            checked_beg = True
+        else:
+            found_answer = True
     answer[0] = answer[0].title()
     found_date = False
     found_prep = False
@@ -188,7 +210,6 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
         if w in date_preposition and i == 0:
             found_prep = True
 
-            
     if not found_date:
         return False, ""
 

@@ -3,7 +3,7 @@ from nltk.tag import StanfordNERTagger
 import os
 import sys
 import pre_processing as pp
-#from dateutil.parser import parse as date_parse
+from dateutil.parser import parse as date_parse
 import en as english_pack
 from pattern.en import *
 from pattern.search import *
@@ -11,6 +11,7 @@ import parse_cmd as cmd
 import json
 import string
 import utils
+from pattern.vector import *
 #import configuration
 
 '''
@@ -39,8 +40,8 @@ def has_all_main(possible_answer, main_part):
 
     return True
 
-def get_possible_answers(sentences, vec, stemmed_sentences,sentence_vec,main_part = None):
-    possible_answers = [(pp.cosine_sim(vec, s),stemmed_sentences[index].lower(),index) for index, s in enumerate(sentence_vec) if pp.cosine_sim(vec, s) > 0.0]
+def get_possible_answers(sentences, doc, stemmed_sentences,docs,model,main_part = None):
+    possible_answers = [(model.similarity(doc, s),stemmed_sentences[index].lower(),index) for index, s in enumerate(docs)]
     possible_answers.sort()
     if main_part == None:
         answer_idxs = [w[2] for w in possible_answers[::-1]]
@@ -271,7 +272,7 @@ def  handle_wh(wh_value,curr,curr_idx,current_sentence, full_sentence,answer,ner
     # if wh_value.lower() == "how":
     #     return how_questions()    
 
-def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
+def how_many_questions(q,sentences,stemmed_sentences,docs,model):
 
     search_string = "how many {!VB*+} VB*"
 
@@ -286,8 +287,8 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
     
     answer = first_part + second_part
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer])
-    stem_vector = pp.text_to_vector (stem_answer)
-    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
+    stem_vector = Document(stem_answer)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,docs,model,main_part)
 
     answered = False
     index = 0
@@ -336,7 +337,7 @@ def how_many_questions(q,sentences,stemmed_sentences,sentence_vec):
         index+=1
     return answered
 
-def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
+def wh_questions(q,ner_tag,sentences,stemmed_sentences, docs,model, wh_value):
 
     '''Answering where questions: Where questions follow the pattern Where V|MD NP V. When we find a question like
     this, remove the "where" word, move the NP to the front and, using cosine similarity, try to find answers that
@@ -351,11 +352,11 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
 
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
-    stem_vector = pp.text_to_vector (stem_answer)
+    stem_vector = Document (stem_answer)
 
     #order possible answers by similarity
 
-    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,sentence_vec,main_part)
+    possible_answers,ans_idx = get_possible_answers(sentences,stem_vector, stemmed_sentences,docs,model,main_part)
     answered = False
     index = 0
     #iterate from the most probable answer to the less until an answer is found
@@ -368,7 +369,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, sentence_vec, wh_value):
         current_sentence = sentences[ans_idx[index]].split() 
 
         answer = answer_start
-        if pp.cosine_sim(stem_vector, pp.text_to_vector (" ".join( \
+        if model.similarity(stem_vector, Document(" ".join( \
             [utils.stemm_term(w) for w in possible_answers[index].split()]))) > cosine_threshold:
             
             #if we find the immutable part of the question on the possible answer, we add the location prep
@@ -440,7 +441,7 @@ def answer_questions(article_path, QA_path):
     questions, ANSWERS = getQA(QA_path)
    
     # Vectorize document
-    sentences ,stemmed_sentences, sentence_vec = pre_processing(article_path)
+    sentences ,stemmed_sentences, docs, model= pre_processing(article_path)
     
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
@@ -449,8 +450,8 @@ def answer_questions(article_path, QA_path):
     #stanford_path = os.environ["CORENLP_3_5_2_PATH"]
     #ner_tag = StanfordNERTagger(os.path.join(stanford_path, "stanford-corenlp-3.5.2.jar"),
      #                   os.path.join(stanford_path, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"))
-    #ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
-    #ner_tag = utils.update_tagger_jars(ner_tag)
+    ner_tag = StanfordNERTagger('english.all.3class.distsim.crf.ser.gz') 
+    ner_tag = utils.update_tagger_jars(ner_tag)
     
     # Get tagged questions
     t_quests = [parsetree(q, tokenize = True,  chunks = True, relations=True, lemmata=True) for q in questions]
@@ -486,10 +487,10 @@ def answer_questions(article_path, QA_path):
             _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
             _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
             _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
-            _object_vec = pp.text_to_vector (_object)
+            _object_vec = Document (_object)
 
             #print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
-            possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,sentence_vec,None)
+            possible_answers,_ = get_possible_answers(sentences,_object_vec,stemmed_sentences,docs,model,None)
             # Sort possible answers, try from top
             current_answer = NO
             for ans in possible_answers:
@@ -499,9 +500,9 @@ def answer_questions(article_path, QA_path):
             print current_answer
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
-            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, sentence_vec,wh_word)
+            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences, docs,model,wh_word)
         elif question_type == "MEDIUM_HOW_MANY":
-            answered = how_many_questions(t_q,sentences,stemmed_sentences, sentence_vec)
+            answered = how_many_questions(t_q,sentences,stemmed_sentences, docs,model)
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
@@ -549,14 +550,17 @@ def pre_processing (filename):
                 tag_sentences[i].words[w].string = LAST_PERSON
 
     sentences = [s.string for s in tag_sentences] 
+    
+
     tag_sentences = [parsetree(s, tokenize = True,  chunks = False, relations=False, lemmata=True) for s in sentences]       
     # Stem sentences
     stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]
-    
+    documents = [Document(s) for s in stemmed_sentences]
+    model = Model(documents=documents, weight=TFIDF)
     # Vectorize sentences
-    sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
+    #sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
 
-    return sentences, stemmed_sentences, sentence_vec
+    return sentences, stemmed_sentences,documents,model#, sentence_vec
 
 def classify_question (tagged_question):
     
@@ -608,7 +612,7 @@ def main():
     answer_questions("buffon_article.txt","buffon_QA.txt")
 
     # Evaluate model on previous datasets
-    evaluate_qa ()
+    # evaluate_qa ()
 
 if __name__ == "__main__":
     main()
