@@ -71,7 +71,7 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
 
 def is_date(string):
     try: 
-        bad_input = set(["at","on","of","for","and",".",","])
+        bad_input = set(["at","on","of","for","and",".",",",""])
         
         if len(string.split("-")) > 1:
             for w in string.split("-"):
@@ -79,7 +79,6 @@ def is_date(string):
                 if w.lower() in bad_input:
                     return False
         else:
-
             date_parse(string)
             if string.lower() in bad_input:
                 return False
@@ -301,13 +300,17 @@ def how_questions(q,sentences,stemmed_sentences):
             search_string = "how many {!VB*+} VB*"
 
             m = search(search_string, q)
-        
-            first_part =[w.string for w in m[0].words[2:-1]]
-            search_string = "VB* *+"
+            if len(m) != 0:
+                first_part =[w.string for w in m[0].words[2:-1]]
+                search_string = "VB* *+"
 
-            main_part = [lemma(first_part[0])]
-            m = search(search_string, q)
-            second_part = [w.string for w in m[0].words[1:]]
+                main_part = [lemma(first_part[0])]
+                m = search(search_string, q)
+                second_part = [w.string for w in m[0].words[1:]]
+            else:
+                first_part = [w.string for w in q.words[2:4]]
+                main_part = [lemma(first_part[0])]
+                second_part = [w.string for w in q.words[4:]]
 
 
             answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
@@ -317,19 +320,12 @@ def how_questions(q,sentences,stemmed_sentences):
         
 
             m = search(search_string, q)
-            # first_part = []
             idx = 2
-            while not m[0].words[idx].type.startswith("VB"):
-                # first_part.append(m[0][words[idx]])
-                idx+=1
-            # first_part.append(m[0].words[idx].string)
-            
-            # search_string = "VB* *+"
+            if len(m) != 0:
+                while not m[0].words[idx].type.startswith("VB"):
+                    idx+=1
 
             main_part = [m[0].words[idx+1].string.lower()]
-            # 
-
-            # first_part =[w.string for w in m[0].words[2:-1]]
             currency_list = ["eur", "$","ps"]
 
             all_answers,idxs = get_possible_answers(sentences, main_part, stemmed_sentences)
@@ -365,10 +361,12 @@ def how_questions(q,sentences,stemmed_sentences):
             search_string = "how NN*? VB* {!VB*+} VB*"
             m = search(search_string, q)
             idx = 1
-            if m[0].words[idx].type.startswith("N"):
-                while not m[0].words[idx].type.startswith("VB"):
-                    idx+=1
-            idx +=1
+            if len(m) != 0:
+
+                if m[0].words[idx].type.startswith("N"):
+                    while not m[0].words[idx].type.startswith("VB"):
+                        idx+=1
+                idx +=1
 
             main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
             first_part = [w.string for w in q.words[idx:]]
@@ -376,6 +374,7 @@ def how_questions(q,sentences,stemmed_sentences):
             print fix_punctuation(" ".join([w.string for w in q.words]))
             print sentences[idxs[0]]
             answered = True
+    
     except Exception:
         return False
     return answered
@@ -644,6 +643,29 @@ def find_all(answer, object,_object_tags,subject = False):
                 count+=1
                 break
 
+    if count > 1 and count < len(object_list):
+        new_count = 0
+        for o in object_list:
+            o_syn = wordnet.synsets(lemma(o.lower()))
+            if len(o_syn) == 0:
+                break
+            o_syn= o_syn[0]
+            for v in split_answer:
+                v_syn = wordnet.synsets(lemma(v).lower())
+                if len(v_syn) == 0:
+                    continue
+                v_syn = v_syn[0]
+                if wordnet.similarity(o_syn, v_syn) > 0.5:
+                    idx = split_answer.index(v)
+                    if negated_answer[idx].endswith("_NEG"):
+                            return False
+                    if subject:
+                        return True
+                    new_count+=1
+                    break
+        count = new_count
+
+
     
     return count == len(object_list)
 
@@ -656,9 +678,12 @@ def pre_processing (filename):
     seen_persons = set()
 
     for i in range(len(tag_sentences)):
+        if i > 0 and LAST_PERSON != "":
+            tag_sentences[i].words.append(LAST_PERSON)
         for w in range(len(tag_sentences[i].words)):
             if tag_sentences[i].words[w].type.lower().endswith("pers") or \
-            tag_sentences[i].words[w].string.lower() in seen_persons:
+            tag_sentences[i].words[w].string.lower() in seen_persons or  \
+            tag_sentences[i].words[w].type.startswith("NNP"):
                 
                 LAST_PERSON =tag_sentences[i].words[w].string
                 seen_persons.add(LAST_PERSON.lower())
@@ -718,12 +743,12 @@ def evaluate_qa ():
 def main():
     # Answers to binary questions
 
-    answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    answer_questions("beckham_article.txt","beckham_QA.txt")
+    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
-    answer_questions("spanish_article.txt","spanish_QA.txt")
-    answer_questions("buffon_article.txt","buffon_QA.txt")
-    answer_questions("hercules_article.txt","hercules_QA.txt")
+    # answer_questions("spanish_article.txt","spanish_QA.txt")
+    # answer_questions("buffon_article.txt","buffon_QA.txt")
+    # answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
