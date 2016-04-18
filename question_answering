@@ -561,7 +561,14 @@ def answer_questions(article_path, QA_path):
     
     #print documents
     model = Model(documents=documents, weight=TF)
-    # model.similarity(documents[1],)
+    try:
+        model.reduce(100)
+    except Exception:
+        try:
+            model.reduce(L2)
+        except:
+            pass
+
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
     #  Update Environment Variables
@@ -636,10 +643,8 @@ def answer_questions(article_path, QA_path):
             
             possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
             
-            #idx = 
             print what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
-            #break
-            #print possible_answers
+
 
         elif question_type == "MEDIUM_WHO":
             print questions[idx]
@@ -660,6 +665,9 @@ def answer_questions(article_path, QA_path):
             print who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
             #break
             #print possible_answers
+        else:
+            possible_answers,_ = get_possible_answers(sentences," ".join([w.string for w in t_q.words]),stemmed_sentences,None)
+            print fix_punctuation(possible_answers[0])
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
@@ -710,7 +718,7 @@ def find_all(answer, object,_object_tags,subject = False):
                         continue
                     v_syn = v_syn[0]
                 
-                    if wordnet.similarity(o_syn, v_syn) > 0.9:
+                    if wordnet.similarity(o_syn, v_syn) >= 1.0:
                         idx = split_answer.index(v)
                         if negated_answer[idx].endswith("_NEG"):
                             return False
@@ -736,8 +744,7 @@ def pre_processing (filename):
     for i in range(len(tag_sentences)):
         for w in range(len(tag_sentences[i].words)):
             if tag_sentences[i].words[w].type.lower().endswith("pers") or \
-            tag_sentences[i].words[w].string.lower() in seen_persons:# or \
-             # tag_sentences[i].words[w].type.startswith("NNP"):
+            tag_sentences[i].words[w].string.lower() in seen_persons:
                 
                 LAST_PERSON =tag_sentences[i].words[w].string
                 seen_persons.add(LAST_PERSON.lower())
@@ -957,13 +964,13 @@ def evaluate_qa ():
 
 def main():
 
-    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # # answer_questions("a2.txt","test_qs.txt")
-    # answer_questions("beckham_article.txt","beckham_QA.txt")
-    # answer_questions("crux_article.txt","crux_QA.txt")
-    # answer_questions("spanish_article.txt","spanish_QA.txt")
-    # answer_questions("buffon_article.txt","buffon_QA.txt")
-    # answer_questions("hercules_article.txt","hercules_QA.txt")
+    answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("a2.txt","test_qs.txt")
+    answer_questions("beckham_article.txt","beckham_QA.txt")
+    answer_questions("crux_article.txt","crux_QA.txt")
+    answer_questions("spanish_article.txt","spanish_QA.txt")
+    answer_questions("buffon_article.txt","buffon_QA.txt")
+    answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
     evaluate_qa ()
