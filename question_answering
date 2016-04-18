@@ -31,6 +31,7 @@ This file tries to answer simple Yes or No questions by the use of string matchi
 
 test_data_folder = "data/test_articles/"
 printable = set(string.printable)
+raw_sentences = None
 model = None
 
 def getQA(article):
@@ -388,7 +389,7 @@ def how_questions(q,sentences,stemmed_sentences):
             first_part = [w.string for w in q.words[idx:]]
             all_answers,idxs = get_possible_answers(sentences, first_part, stemmed_sentences,main_part)
             print fix_punctuation(" ".join([w.string for w in q.words]))
-            print sentences[idxs[0]]
+            print raw_sentences[idxs[0]]
             answered = True
     except Exception:
         traceback.print_exc()
@@ -537,7 +538,7 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
             return True
         else:
             print fix_punctuation(original_q)
-            print fix_punctuation(sentences[ans_idx[0]])
+            print fix_punctuation(raw_sentences[ans_idx[0]])
             return True
 
 def answer_questions(article_path, QA_path):
@@ -562,7 +563,7 @@ def answer_questions(article_path, QA_path):
     #print documents
     model = Model(documents=documents, weight=TF)
     try:
-        model.reduce(100)
+        model.reduce(150)
     except Exception:
         try:
             model.reduce(L2)
@@ -734,9 +735,10 @@ def find_all(answer, object,_object_tags,subject = False):
     return count == len(object_list)
 
 def pre_processing (filename):
+    global raw_sentences
     # Tokenize sentences in document
     sentences = utils.get_tokenized_sentences(filename)
-
+    raw_sentences = list(sentences)
     tag_sentences = [parsetree(s, tokenize = True,  chunks = False, relations=False, lemmata=True) for s in sentences]
     LAST_PERSON = ""
     seen_persons = set()
@@ -756,9 +758,7 @@ def pre_processing (filename):
     # Stem sentences
     stemmed_sentences = [" ".join([w.lemma for w in s.words]) for s in tag_sentences]
     documents = [Document(s,filter = lambda w: w,name=idx) for idx,s in enumerate(stemmed_sentences)]
-    # Vectorize sentences
-    #sentence_vec = [pp.text_to_vector(sentence) for sentence in stemmed_sentences]
-
+   
     return sentences, stemmed_sentences, documents
 
 def classify_question (tagged_question):
@@ -821,7 +821,7 @@ def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, 
                     # Capitalize first word
                     split_sentences[j + 1] = split_sentences[j + 1].title()
                     #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
-                    return sentences[i]
+                    return raw_sentences[i]
     else:
         main_words = remove_stop_words (main_part.split())
         window = len (main_words) + 5
@@ -840,7 +840,7 @@ def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, 
                     maxIdx = len(words)
                 for k in range (j, maxIdx):
                     if words_matched == len (main_words):
-                        return sentences[answer_idx[i]]
+                        return raw_sentences[answer_idx[i]]
                     '''
                     if words[k] == main_words[words_matched]:
                         words_matched += 1
@@ -854,14 +854,14 @@ def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, 
                     best_answer_idx = i
 
     if best_answer_idx > -1:
-        return sentences[answer_idx[best_answer_idx]]
+        return raw_sentences[answer_idx[best_answer_idx]]
     elif len (possible_answers) > 0:
-        return sentences[answer_idx[0]]
+        return raw_sentences[answer_idx[0]]
     else:
-        return sentences[0]
+        return raw_sentences[0]
 
 def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
-
+    global raw_sentences
     main_words = main_part.split()
     best_answer_idx = -1
     
@@ -883,7 +883,7 @@ def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, m
                     # Capitalize first word
                     split_sentences[j + 1] = split_sentences[j + 1].title()
                     #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
-                    return sentences[i]
+                    return raw_sentences[i]
     else:
         #print possible_answers
         main_words = remove_stop_words (main_part.split())
@@ -904,7 +904,7 @@ def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, m
                     maxIdx = len(words)
                 for k in range (j, maxIdx):
                     if words_matched == len (main_words):
-                        return sentences[answer_idx[i]]
+                        return raw_sentences[answer_idx[i]]
                     '''
                     if words[k] == main_words[words_matched]:
                         words_matched += 1
@@ -920,11 +920,11 @@ def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, m
 
     #print best_answer_idx
     if best_answer_idx > -1:
-        return sentences[answer_idx[best_answer_idx]]
+        return raw_sentences[answer_idx[best_answer_idx]]
     elif len (possible_answers) > 0:
-        return sentences[answer_idx[0]]
+        return raw_sentences[answer_idx[0]]
     else:
-        return sentences[0]
+        return raw_sentences[0]
 
 def get_subject_object (t_q):
     t_q = t_q.words
@@ -964,13 +964,15 @@ def evaluate_qa ():
 
 def main():
 
-    answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    # answer_questions("a2.txt","test_qs.txt")
-    answer_questions("beckham_article.txt","beckham_QA.txt")
-    answer_questions("crux_article.txt","crux_QA.txt")
-    answer_questions("spanish_article.txt","spanish_QA.txt")
-    answer_questions("buffon_article.txt","buffon_QA.txt")
-    answer_questions("hercules_article.txt","hercules_QA.txt")
+    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # # answer_questions("a2.txt","test_qs.txt")
+    # answer_questions("beckham_article.txt","beckham_QA.txt")
+    # answer_questions("crux_article.txt","crux_QA.txt")
+    # answer_questions("spanish_article.txt","spanish_QA.txt")
+    # answer_questions("buffon_article.txt","buffon_QA.txt")
+    # answer_questions("hercules_article.txt","hercules_QA.txt")
+    answer_questions("dempsey_article.txt","dempsey_QA.txt")
+
 
     # Evaluate model on previous datasets
     evaluate_qa ()
