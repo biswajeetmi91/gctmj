@@ -1,6 +1,14 @@
-Is Kuala Lumpur the capitol of Malaysia? disfluent#YES
-Is Kuala Lumpur in the Selangor state?#YES
-Is it a host city for the Formula One World Championship?#YES
-is the central market located in the proximity of the pertama complex?#NO
-is it home to the parliament of malaysia?#YES
-Is there a more industrialized region in malaysia?#NO
+Did Webster write, "I can now sleep of nights"?#YES
+Was the arrival of Louis Kossuth (exiled leader of a failed Hungarian revolution) another issue that presented itself during Fillmore's presidency?#YES
+Did he die at 11:10 p.m. on March 8, 1874, of the after-effects of a stroke?#YES
+Did Fillmore run for President a second time?#YES
+Was Millard Fillmore the thirteenth President of the United States?#YES
+Was Millard Fillmore born on January 7, 1800?#YES
+Did Millard Fillmore die on March 8, 1974?#NO
+Was Fillmore one of the founders of the University of Buffalo?#YES
+Was Another primary objective of Fillmore to preserve the Union from the intensifying slavery debate?#YES
+Was Fillmore the second Chancellor, a position he maintained while both Vice President and President?#NO
+Is Fillmore the first of two presidents to have been an indentured servant ?#YES
+Is the comic strip Mallard Fillmore named after the president ?#YES
+Was Fillmore the first U.S. President born after the death of a former president ?#YES
+Did Fillmore not turn down the honor , explaining that he had neither the `` literary nor scientific attainment '' to justify the degree ?#NO

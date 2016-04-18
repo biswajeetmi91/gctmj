@@ -15,7 +15,11 @@ def get_stemmed_sentences(sentences):
 
 def get_tokenized_sentences(path_to_file):
     with open(path_to_file) as f:
-        sentences = tokenize(unidecode(" ".join([s.decode("utf-8").replace("/"," ") for s in f.readlines()])))
+        try:
+            sentences = tokenize(unidecode(" ".join([s.decode("utf-8").replace("/"," ") for s in f.readlines() if len(s.split()) > 3 ])))
+        except:
+            sentences = tokenize(unidecode(" ".join([s.replace("/"," ") for s in f.readlines() if len(s.split()) > 3 ])))
+
         sentences = [unidecode(w).replace(" EUR"," EUR ").replace(" PS", " PS ").replace("$","$ ") for w in sentences]
             #filter(lambda x: x in printable,f.read().decode('utf-8').replace("\n"," ").replace("/"," ")))
         return sentences

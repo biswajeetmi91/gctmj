@@ -1,4 +1,16 @@
-Is the electric eel a true eel?#NO
-Are most eels predators?#YES
-Is eel blood toxic to humans?#YES
-Do all eels live in fresh water?#NO
+Are beetles insects?#YES
+Can beetles be found in polar regions?#NO
+Do beetles antennae function primarily as organs of smell?#YES
+Are certain species of beetles considered pests?#YES
+Is a beetle's general anatomy uniform?#YES
+Are beetles endopterygotes?#YES
+Is it possible that there are more than 350,000 species of beetles?#YES
+Is the Adephaga suborder larger than the Polyphaga suborder?#NO
+Do carrion beetles eat dung?#NO
+Are many beetles territorial?#YES
+Are beetles endopterygotes with complete metamorphosis?#YES
+Is there a thriving industry in the collection of beetle specimens for amateur and professional collectors ?#YES
+Have coleopterists formed organisations to facilitate the study of beetles ?#YES
+Is the study of beetles called coleopterology , and its practitioners are coleopterists ?#YES
+May a single female lay from several dozen to several thousand eggs during her lifetime ?#YES
+Can beetles be found in almost all habitats?#YES

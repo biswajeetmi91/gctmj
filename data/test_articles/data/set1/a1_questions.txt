@@ -1,8 +1,18 @@
-Do ants belong to the Hymenoptera order?#YES
-Are ants used in cuisine?#YES
-Does an ant's head contain sensory organs?#YES
-Do ants thrive in most ecosystems?#YES
-Are several species of ants able to use the Earths magnetic field?#YES
-Do some caterpillars produce vibrations as well as sounds?#YES
-Did ants evolve from wasp-like ancestors in the mid-Cretaceous period between 110 and 130 million years ago and diversified after the rise of flowering plants?#YES
-Is the ant a marsupial?#NO
+Is a kangaroo a reptile?#NO
+Is a kangaroo on the Australian coat of arms?#YES
+Was James Cook the first to record the name "Kangooroo?"#YES
+Are wild kangaroos shot for meat?#YES
+Have kangaroos fared well since European settlement?#YES
+Do kangaroos have many natural predators?#NO
+Do kangaroos eat plants?#YES
+Is a Kangaroo a Marsupial?#YES
+Is the kangaroo an herbivour?#YES
+Are Kangaroos Shy?#YES
+Are kangaroos and wallabies adept swimmers?#YES
+Are kangaroos farmed to any extent?#NO
+Have Kangaroos dazzled by headlights or startled by engine noise been known to leap in front of cars ?#YES
+Is a collision with a vehicle capable of killing a kangaroo ?#YES
+Was the game of Marn grook played using a ball made from kangaroo by the Kurnai people ?#YES
+Have kangaroos large , powerful hind legs , large feet adapted for leaping , a long muscular tail for balance , and a small head ?#YES
+Is a kangaroo a marsupial from the family macropodidae -LRB- macropods , meaning (`` ` large foot ('' ' -RRB-?#YES
+Have larger kangaroos adapted much better to changes?#YES

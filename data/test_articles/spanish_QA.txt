@@ -7,3 +7,4 @@ Is Spanish a Romance language?#YES
 Does Spanish belong to the Ibero-Romance group of languages?#YES
 Does Spanish language evolve from colloquial Latin?#YES
 How many official languages does the United Nations have?#6
+What type of Latin did Spanish originate from?#Vulgar Latin.

@@ -1,14 +1,12 @@
-Is the drum a member of the percussion group?#YES
-Does each type of drum head serve its own musical purpose?#YES
-Is the Aburukuwa a type of drum?#YES
-Had the drums been used in Sri Lanka since Before Christ?#YES
-Are drums often used in music therapy?#YES
-Do drums consist of at least eight membranes?#NO
-Has the design of drums changed recently?#NO
-Can some cylindrical shell drums have no drum heads?#NO
-Does every drumhead make the same sound?#NO
-Aren't drums usually played by the hands?#YES
-Are drums usually played by the hands?#YES
-Do many such drums have six to ten tension rods?#YES
-Do drums consist of at least one membrane, called a drumhead or drum skin, that is stretched over a shell and struck, either directly with parts of a player's body, or with some sort of implement such as a drumstick, to produce sound?#YES
-Have other techniques been used to cause drums to make sound, such as the ``Thumb roll''?#YES
+Were the treaties signed in 1947 and 1948 with the Ukraine?#NO
+Is Finnish a member of the Baltic-Finnic subgroup of the Uralic languages?#YES
+Is the most read newspaper in Finland Taloussanomat?#NO
+Today, are there more cell phone subscriptions than people in Finland?#YES
+Is Matti Vanhanen the Prime Minister of Finland?#YES
+Is the capital city Oslo?#NO
+Does it have a border with Norway?#YES
+Does salmon remain the favorite of fly rod enthusiasts?#YES
+Are there cathedrals scattered all across Finland?#YES
+According to Reader's Digest, is Finland best for living?#YES
+Does a large proportion of the population speak Swedish as its mother tongue?#NO
+Do women live longer than men?#YES
