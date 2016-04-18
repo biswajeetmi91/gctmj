@@ -46,6 +46,7 @@ def main():
 		
 		sentences = open(INPUT_FILE).read().split('\n')
 		# sentences = ['Sentence 1','Sentence 2','Sentence 3']
+		sentences = ['']
 		outputSentences = []	
 		for sentence in sentences:
 			print sentence
@@ -158,6 +159,7 @@ def generateYesNoQuestionFromParseTree(parseTree):
 	
 	except Exception as error:
 		print 'EXCEPTION CAUGHT in generateYesNoQuestionFromParseTree()', error
+		return []
 	print labels
 	return question
 
@@ -242,6 +244,7 @@ def getSentenceWithAuxFromParseTree(parseTree):
 				question[i] += str(leaf) + ' '
 	except:
 			print 'EXCEPTION CAUGHT in getSentenceWithAuxFromParseTree()'
+			return []
 
 	return sentenceWithAux
 
