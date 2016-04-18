@@ -20,6 +20,7 @@ import json
 import string
 import utils
 from nltk.sentiment.util import mark_negation
+
 # import configuration
 import re
 
@@ -64,6 +65,8 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
     else:
         possible_answers = [w + [has_all_main(w[0],main_part)] for w in possible_answers if has_all_main(w[0],main_part) > 0]
         possible_answers = sorted(possible_answers, key = lambda x: (-x[3], -x[2]))
+
+
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
 
@@ -103,14 +106,14 @@ def get_wh_structure(q, wh_tag):
     try:
         m = m[0]
     except:
-        print q
+        m = q
     wh_word = m.words[0]
 
     #Creates part of answer that was before the where clause(contextual information)
     initial_aux = ""
     if wh_word.index != 0:
         initial_aux = " ".join([q.words[w].string for w in range(wh_word.index)])
-        
+    
     #Create final part of answer, that comes after the verb
     final_aux = ""
     if m[-1].index < len(q.words) -1:
@@ -134,7 +137,7 @@ def get_wh_structure(q, wh_tag):
         elif english_pack.verb.is_present(v.string, person=3):
             m[-1].string = english_pack.verb.present(m[-1].string,person  = 3)
     
-    main_part  = [w.string for w in m]
+    main_part  = [w.string for w in m] + final_aux.split()
 
     answer = " ".join(main_part)
  
@@ -187,7 +190,6 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
             if not have_seen(already_seen,current_sentence,curr_idx):
                 answer+= " " + current_sentence[curr_idx]
             curr_idx +=1
-        
 
         answer = answer.split()
         curr_idx -= 1
@@ -734,8 +736,8 @@ def pre_processing (filename):
     for i in range(len(tag_sentences)):
         for w in range(len(tag_sentences[i].words)):
             if tag_sentences[i].words[w].type.lower().endswith("pers") or \
-            tag_sentences[i].words[w].string.lower() in seen_persons or \
-             tag_sentences[i].words[w].type.startswith("NNP"):
+            tag_sentences[i].words[w].string.lower() in seen_persons:# or \
+             # tag_sentences[i].words[w].type.startswith("NNP"):
                 
                 LAST_PERSON =tag_sentences[i].words[w].string
                 seen_persons.add(LAST_PERSON.lower())
@@ -955,16 +957,16 @@ def evaluate_qa ():
 
 def main():
 
-    answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    #answer_questions("a2.txt","test_qs.txt")
-    answer_questions("beckham_article.txt","beckham_QA.txt")
-    answer_questions("crux_article.txt","crux_QA.txt")
-    answer_questions("spanish_article.txt","spanish_QA.txt")
-    answer_questions("buffon_article.txt","buffon_QA.txt")
-    answer_questions("hercules_article.txt","hercules_QA.txt")
+    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # # answer_questions("a2.txt","test_qs.txt")
+    # answer_questions("beckham_article.txt","beckham_QA.txt")
+    # answer_questions("crux_article.txt","crux_QA.txt")
+    # answer_questions("spanish_article.txt","spanish_QA.txt")
+    # answer_questions("buffon_article.txt","buffon_QA.txt")
+    # answer_questions("hercules_article.txt","hercules_QA.txt")
 
     # Evaluate model on previous datasets
-    #evaluate_qa ()
+    evaluate_qa ()
 
 if __name__ == "__main__":
     main()
