@@ -1,3 +1,12 @@
-Is Berlin the capital city of Germany?#YES
-Is Berlin the largest city in Germany?#YES
-Is Schloss Charlottenburg the largest existing palace in Berlin?#YES
+Did John Adams represent the Continental Congress in Europe?#YES
+Was Adams raised Congregationalist?#YES
+Was Adams an opponent of the Stamp Act?#YES
+Was Adams the first to introduce a bicameral legislature?#YES
+Did John Adams get along with Alexander Hamilton?#NO
+Did John Adams go to Harvard? #YES
+Did John Adams support the Stamp Act of 1765?#NO
+Is Adams' birthplace part of a national park?#YES
+Is it true that adams had spent some time as the ambassador?#YES
+Is it true that massachusetts sent him in 1774?#YES
+Are his last words often quoted as " Thomas Jefferson survives " . ?#YES
+Did the election of 1800 not become a bitter and volatile battle , with each side expressing extraordinary fear of the other party and its policies ?#NO

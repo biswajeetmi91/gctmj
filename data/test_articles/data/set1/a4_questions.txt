@@ -1,7 +1,11 @@
-Has the dragon historically served as China's national emblem?#YES
-Do pandas hibernate?#NO
-Do giant pandas attack humans?#YES
-Is the Giant Panda a mammal?#YES
-Is the Giant Panda a terrestrial animal?#YES
-Is the Giant Panda an endangered species?#YES
-Is the Giant Panda a carnivore?#YES
+Is polar bear a mammal?#YES
+Is polar bear a carnivore?#YES
+Does a polar bear live in the Arctic?#YES
+Is a polar bear white in color?#YES
+Is a polar bear at high risk of extinction?#YES
+Do female polar bears weight more than the male?#NO
+Are polar bears excellent swimmers?#YES
+Is the Polar Bear the mascot of Bowdoin college ?#YES
+Have thumbpolar bears been made both controversial and famous for their distinctive white fur and their habitat ?#YES
+Did Mitchell Taylor , the Nunavut Government Manager of Wildlife Research , not write a letter to the U.S. Fish and Wildlife Service arguing that local studies are insufficient evidence for global protection at this time ?#NO
+Are Cubs born in December without awakening the mother ?#YES

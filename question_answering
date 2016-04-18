@@ -3,6 +3,8 @@ _author_ = 'lrmneves', 'apoorvab'
 #compressed warnings not to break our system
 import warnings
 warnings.filterwarnings("ignore")
+import traceback
+
 
 from nltk.tag import StanfordNERTagger
 import os
@@ -18,7 +20,9 @@ import json
 import string
 import utils
 from nltk.sentiment.util import mark_negation
-#import configuration
+
+# import configuration
+import re
 
 
 '''
@@ -45,8 +49,8 @@ def has_all_main(possible_answer, main_part):
     count = 0
     for w in range(len(main_part)):
         if lemma(main_part[w].lower()) in possible_answer or  main_part[w].lower() in possible_answer:
+
             count +=1
-            
 
     return count
 
@@ -55,14 +59,14 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
 
     possible_answers = model.search(search_word,top=top) 
     possible_answers = [[stemmed_sentences[int(ans[1].name)].lower(),int(ans[1].name), ans[0]]for ans in possible_answers] 
-    # print possible_answers
     if main_part == None:
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
     else:
         possible_answers = [w + [has_all_main(w[0],main_part)] for w in possible_answers if has_all_main(w[0],main_part) > 0]
         possible_answers = sorted(possible_answers, key = lambda x: (-x[3], -x[2]))
-        # print possible_answers
+
+
         answer_idxs = [w[1] for w in possible_answers]
         possible_answers = [w[0] for w in possible_answers]
 
@@ -71,7 +75,7 @@ def get_possible_answers(sentences, search_word, stemmed_sentences,main_part = N
 
 def is_date(string):
     try: 
-        bad_input = set(["at","on","of","for","and",".",","])
+        bad_input = set(["at","on","of","for","and",".",",",""])
         
         if len(string.split("-")) > 1:
             for w in string.split("-"):
@@ -95,19 +99,21 @@ def get_wh_structure(q, wh_tag):
     if len(m) == 0:
         #This solves ambiguity. If a verb can also be a noun and is misclassified, we change it back to a verb
         for i in range(len(q.words)):
-            if english_pack.is_verb(q.words[i].string) and not q.words[i].type.startswith("V"):
+            if english_pack.is_verb(lemma(q.words[i].string)) and not q.words[i].type.startswith("V"):
                 q.words[i].type = "VB"
                 break
         m = search(search_string, q)
-
-    m = m[0]
+    try:
+        m = m[0]
+    except:
+        m = q
     wh_word = m.words[0]
 
     #Creates part of answer that was before the where clause(contextual information)
     initial_aux = ""
     if wh_word.index != 0:
         initial_aux = " ".join([q.words[w].string for w in range(wh_word.index)])
-        
+    
     #Create final part of answer, that comes after the verb
     final_aux = ""
     if m[-1].index < len(q.words) -1:
@@ -131,7 +137,7 @@ def get_wh_structure(q, wh_tag):
         elif english_pack.verb.is_present(v.string, person=3):
             m[-1].string = english_pack.verb.present(m[-1].string,person  = 3)
     
-    main_part  = [w.string for w in m]
+    main_part  = [w.string for w in m] + final_aux.split()
 
     answer = " ".join(main_part)
  
@@ -184,7 +190,6 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
             if not have_seen(already_seen,current_sentence,curr_idx):
                 answer+= " " + current_sentence[curr_idx]
             curr_idx +=1
-        
 
         answer = answer.split()
         curr_idx -= 1
@@ -299,15 +304,19 @@ def how_questions(q,sentences,stemmed_sentences):
     try:
         if "how many" in q.string.lower():
             search_string = "how many {!VB*+} VB*"
-
             m = search(search_string, q)
-        
-            first_part =[w.string for w in m[0].words[2:-1]]
-            search_string = "VB* *+"
+            if len(m) != 0:
 
-            main_part = [lemma(first_part[0])]
-            m = search(search_string, q)
-            second_part = [w.string for w in m[0].words[1:]]
+                first_part =[w.string for w in m[0].words[2:-1]]
+                search_string = "VB* *+"
+
+                main_part = [lemma(first_part[0])]
+                m = search(search_string, q)
+                second_part = [w.string for w in m[0].words[1:]]
+            else:
+                first_part = [w.string for w in q.words[2:4]]
+                main_part = [lemma(first_part[0])]
+                second_part = [w.string for w in q.words[4:]]
 
 
             answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
@@ -317,17 +326,15 @@ def how_questions(q,sentences,stemmed_sentences):
         
 
             m = search(search_string, q)
-            # first_part = []
             idx = 2
-            while not m[0].words[idx].type.startswith("VB"):
-                # first_part.append(m[0][words[idx]])
-                idx+=1
-            # first_part.append(m[0].words[idx].string)
-            
-            # search_string = "VB* *+"
+            if len(m) != 0:
+                while not m[0].words[idx].type.startswith("VB"):
+                    idx+=1
 
-            main_part = [m[0].words[idx+1].string.lower()]
-            # 
+                main_part = [m[0].words[idx+1].string.lower()]
+            else:
+                main_part = [ w.string.lower() for w in q.words[idx+2:]]
+          
 
             # first_part =[w.string for w in m[0].words[2:-1]]
             currency_list = ["eur", "$","ps"]
@@ -357,19 +364,26 @@ def how_questions(q,sentences,stemmed_sentences):
                 print answer + " " + pos_ans[ans_idxs[0]]
             return True
 
-
-
-            # answered= how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,main_part)
         else:
 
             search_string = "how NN*? VB* {!VB*+} VB*"
             m = search(search_string, q)
-            idx = 1
-            if m[0].words[idx].type.startswith("N"):
-                while not m[0].words[idx].type.startswith("VB"):
-                    idx+=1
-            idx +=1
 
+            idx = 1
+
+
+            if len(m) != 0:
+
+                if m[0].words[idx].type.startswith("N"):
+                    while not m[0].words[idx].type.startswith("VB"):
+                        idx+=1
+                
+            else:
+                while not q.words[idx].type.startswith("VB"):
+                     idx+=1
+
+
+            idx +=1
             main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
             first_part = [w.string for w in q.words[idx:]]
             all_answers,idxs = get_possible_answers(sentences, first_part, stemmed_sentences,main_part)
@@ -377,6 +391,7 @@ def how_questions(q,sentences,stemmed_sentences):
             print sentences[idxs[0]]
             answered = True
     except Exception:
+        traceback.print_exc()
         return False
     return answered
 
@@ -540,14 +555,22 @@ def answer_questions(article_path, QA_path):
     YES = "YES"
     NO = "NO"
     questions, ANSWERS = getQA(QA_path)
-   
+
     # Vectorize document
     sentences ,stemmed_sentences,documents = pre_processing(article_path)
+    
+    #print documents
     model = Model(documents=documents, weight=TF)
-    # model.similarity(documents[1],)
+    try:
+        model.reduce(100)
+    except Exception:
+        try:
+            model.reduce(L2)
+        except:
+            pass
+
     # Stem questions
     stemmed_questions = utils.get_stemmed_sentences(questions)
-
     #  Update Environment Variables
     # stanfordpath = os.environ["CORENLP_3_6_0_PATH"]
     # ner_tag = StanfordNERTagger(os.path.join(stanfordpath, "models/edu/stanford/nlp/models/ner/english.all.3class.distsim.crf.ser.gz"), \
@@ -574,26 +597,20 @@ def answer_questions(article_path, QA_path):
         answered = False
 
         question_type, wh_word = classify_question (t_q)
+        #print t_q.words
 
         if question_type == "EASY":
-            t_q = t_q.words
             total_answers +=1
             num_q += 1
-            #if (t_q[0].type.startswith("VB") or t_q[0].type == "MD" or t_q[0].type.startswith("N")):
-            j = 2
-
-            while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
-                j += 1
             
-            _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
-            _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
-            _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
-            _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
-            _object_vec = pp.text_to_vector (_object)
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            # Vectorize object
+            #_object_vec = pp.text_to_vector (_object)
 
             # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
             possible_answers,_ = get_possible_answers(sentences,_object,stemmed_sentences,None)
-
 
             current_answer = NO
             for ans in possible_answers:
@@ -602,7 +619,6 @@ def answer_questions(article_path, QA_path):
                 if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
 
                     # if not negated(ans):
-
                     current_answer = YES
 
                     break
@@ -612,10 +628,51 @@ def answer_questions(article_path, QA_path):
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
         elif question_type == "MEDIUM_HOW":
             answered = how_questions(t_q,sentences,stemmed_sentences)
+        elif question_type == "MEDIUM_WHAT":
+            print questions[idx]
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            subject_sentence = _subject.split()
+
+            verb = subject_sentence[0]
+
+            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+            
+            mt = main_part.strip().split()
+            
+            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+            
+            print what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
+
+
+        elif question_type == "MEDIUM_WHO":
+            print questions[idx]
+            # Get object and subject from question
+            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+            
+            subject_sentence = _subject.split()
+
+            verb = subject_sentence[0]
+
+            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+            
+            mt = main_part.strip().split()
+            
+            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+            
+            #idx = 
+            print who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part)
+            #break
+            #print possible_answers
+        else:
+            possible_answers,_ = get_possible_answers(sentences," ".join([w.string for w in t_q.words]),stemmed_sentences,None)
+            print fix_punctuation(possible_answers[0])
 
     if total_answers > 0:
         print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
-
+    else:
+        total_answers = 1.
     return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
@@ -643,6 +700,35 @@ def find_all(answer, object,_object_tags,subject = False):
                     return True
                 count+=1
                 break
+
+    if count > 1 and count < len(object_list):
+        new_count = 0
+        for o in object_list:
+            try:
+                o_syn = wordnet.synsets(lemma(o.lower()))
+                if len(o_syn) == 0:
+                    break
+                o_syn= o_syn[0]
+            except:
+                break
+            for v in split_answer:
+                try:
+                    v_syn = wordnet.synsets(lemma(v).lower())
+                    if len(v_syn) == 0:
+                        continue
+                    v_syn = v_syn[0]
+                
+                    if wordnet.similarity(o_syn, v_syn) >= 1.0:
+                        idx = split_answer.index(v)
+                        if negated_answer[idx].endswith("_NEG"):
+                            return False
+                        if subject:
+                            return True
+                        new_count+=1
+                        break
+                except:
+                    continue
+        count = new_count
 
     
     return count == len(object_list)
@@ -677,12 +763,15 @@ def pre_processing (filename):
 
 def classify_question (tagged_question):
     
-    question_type = "EASY"
+    question_type = "HARD"
     wh_word = ""
     wh_question_set = set(["where","when"])
 
     if "how" in tagged_question.string.lower():
         question_type = "MEDIUM_HOW"
+    elif "what" in tagged_question.string.lower() or "who" in tagged_question.string.lower() or "which" in tagged_question.string.lower():
+        question_type = "MEDIUM_WHAT"
+   
     else:
         for w in tagged_question.words:
             if w.string.lower() in wh_question_set:
@@ -697,12 +786,169 @@ def classify_question (tagged_question):
 
     return question_type, wh_word
 
+def remove_stop_words (sentence):
+
+    wordlist = ['of', 'a', 'the']
+
+    new_sentence = []
+
+    for word in sentence:
+        if word not in wordlist:
+            new_sentence.append(word)
+
+    return new_sentence
+
+def what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
+
+    main_words = main_part.split()
+    best_answer_idx = -1
+
+    if len (main_words) < 3:
+        # Look for a sentence which begins with the words
+        for i, ans in enumerate (stemmed_sentences):
+            words = ans.split()
+            # Replace Non characters by space
+            #line = re.sub(r"[^A-Z]", " ", line)
+            if words[0] == main_words[0]:# and (words[2] == main_words[1] or words[3] == main_words[1] or words[4] == main_words[1]):
+                j = 1
+                #length = len (main_words[0]) + len (main_words[1]) + 1
+                # Ignore any word with special characters
+                while set('[~!@#$%^&*()_+{}":;\']+$').intersection(words[j]):
+                    #length += len (words[j]) + 1
+                    j += 1
+                if words[j] == main_words[1]:
+                    split_sentences = sentences[i].split()
+                    # Capitalize first word
+                    split_sentences[j + 1] = split_sentences[j + 1].title()
+                    #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
+                    return sentences[i]
+    else:
+        main_words = remove_stop_words (main_part.split())
+        window = len (main_words) + 5
+        max_match = 0
+        best_answer_idx = -1
+        # Search for the main part in a window
+        for i, ans in enumerate (possible_answers):
+            words = ans.split()
+            for j in range (0, len(words)):
+                maxIdx = j + window
+                words_matched = 0
+                copy = []
+                for w in main_words:
+                    copy.append (w)
+                if maxIdx > len(words):
+                    maxIdx = len(words)
+                for k in range (j, maxIdx):
+                    if words_matched == len (main_words):
+                        return sentences[answer_idx[i]]
+                    '''
+                    if words[k] == main_words[words_matched]:
+                        words_matched += 1
+                    '''
+                    if words[k] in copy:
+                        #print words[k], k, j, maxIdx
+                        words_matched += 1
+                        copy.remove (words[k])
+                if max_match < words_matched:
+                    max_match = words_matched
+                    best_answer_idx = i
+
+    if best_answer_idx > -1:
+        return sentences[answer_idx[best_answer_idx]]
+    elif len (possible_answers) > 0:
+        return sentences[answer_idx[0]]
+    else:
+        return sentences[0]
+
+def who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part):
+
+    main_words = main_part.split()
+    best_answer_idx = -1
+    
+    if len (main_words) < 3:
+        # Look for a sentence which begins with the words
+        for i, ans in enumerate (stemmed_sentences):
+            words = ans.split()
+            # Replace Non characters by space
+            #line = re.sub(r"[^A-Z]", " ", line)
+            if words[0] == main_words[0]:# and (words[2] == main_words[1] or words[3] == main_words[1] or words[4] == main_words[1]):
+                j = 1
+                #length = len (main_words[0]) + len (main_words[1]) + 1
+                # Ignore any word with special characters
+                while set('[~!@#$%^&*()_+{}":;\']+$').intersection(words[j]):
+                    #length += len (words[j]) + 1
+                    j += 1
+                if words[j] == main_words[1]:
+                    split_sentences = sentences[i].split()
+                    # Capitalize first word
+                    split_sentences[j + 1] = split_sentences[j + 1].title()
+                    #return " ".join([split_sentences[i] for i in range(j + 1,len(split_sentences))])
+                    return sentences[i]
+    else:
+        #print possible_answers
+        main_words = remove_stop_words (main_part.split())
+        #print main_words
+        window = len (main_words) + 5
+        best_answer_idx = -1
+        max_match = 0
+        # Search for the main part in a window
+        for i, ans in enumerate (possible_answers):
+            words = ans.split()
+            for j in range (0, len(words)):
+                maxIdx = j + window
+                words_matched = 0
+                copy = []
+                for w in main_words:
+                    copy.append (w)
+                if maxIdx > len(words):
+                    maxIdx = len(words)
+                for k in range (j, maxIdx):
+                    if words_matched == len (main_words):
+                        return sentences[answer_idx[i]]
+                    '''
+                    if words[k] == main_words[words_matched]:
+                        words_matched += 1
+                    '''
+                    if words[k] in copy:
+                        #print words[k], k, j, maxIdx
+                        words_matched += 1
+                        copy.remove (words[k])
+                if max_match < words_matched:
+                    #print words_matched, ans, i
+                    max_match = words_matched
+                    best_answer_idx = i
+
+    #print best_answer_idx
+    if best_answer_idx > -1:
+        return sentences[answer_idx[best_answer_idx]]
+    elif len (possible_answers) > 0:
+        return sentences[answer_idx[0]]
+    else:
+        return sentences[0]
+
+def get_subject_object (t_q):
+    t_q = t_q.words
+    
+    j = 2
+
+    while t_q[j].type.startswith("N") or t_q[j].type.startswith("J"):
+        j += 1
+    
+    _object = " ".join([t_q[i].lemma for i in range(j,len(t_q)) if t_q[i].type != "."])
+    #print _object
+    _object_tags = " ".join([t_q[i].type for i in range(j,len(t_q)) if t_q[i].type != "."])
+    _subject = " ".join([ t_q[i].lemma for i in range(1,j) if t_q[i].type != "."] )
+    #print _subject
+    _sub_tags = " ".join([t_q[i].type for i in range(1,j) if t_q[i].type != "."])
+
+    return _object, _object_tags, _subject, _sub_tags
+
 def evaluate_qa ():
     acc = 0.0
     num = 0
     num_q = 0
     
-    for j in range (1, 7):
+    for j in range (1, 5):
         for i in range (1, 11):
             try:
                 x, y = answer_questions("data/set" + str(j) + "/a" + str(i) + ".txt","data/set" + str(j) + "/a" + str(i) + "_questions.txt")
@@ -710,15 +956,16 @@ def evaluate_qa ():
                 num_q += y
                 num += 1
             except:
-                print "File Not Found"
-
-    print acc/num
+                traceback.print_exc()
+                
+    if num > 0:
+        print acc/num
     print num_q
 
 def main():
-    # Answers to binary questions
 
     answer_questions("propaganda_article.txt","propaganda_QA.txt")
+    # answer_questions("a2.txt","test_qs.txt")
     answer_questions("beckham_article.txt","beckham_QA.txt")
     answer_questions("crux_article.txt","crux_QA.txt")
     answer_questions("spanish_article.txt","spanish_QA.txt")

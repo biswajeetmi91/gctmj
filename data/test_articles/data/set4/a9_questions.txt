@@ -1,3 +1,6 @@
-Did Becquerel study science at the …cole des Ponts et ChaussÈes?#YES
-Did he become chief engineer in the Department of Bridges and Highways in 1892?#NO
-Was Becquerel a French physicist?#YES
+Is it true that he married louise d√©sir√©e lorieux in 1890?#YES
+Is it true that he shared the nobel prize in physics?#YES
+Was Becquerel elected Permanent Secretary of the Acad√©mie des Sciences?#YES
+Was Becquerel born in Paris into a family which, including he and his son Jean, produced four generations of scientists?#YES
+Did one places between the phosphorescent substance and the paper a piece of money or a metal screen not pierce with a cut-out design ?#YES
+Is there a becquerel crater on the moon and a becquerel crater on mars?#YES

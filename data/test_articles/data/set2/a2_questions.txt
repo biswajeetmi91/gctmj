@@ -1,9 +1,14 @@
-Does a violin have four strings?#YES
-Is the violin supported by the left shoulder?#YES
-Is the violin shaped like an hourglass?#YES
-Is the violin a percussion instrument?#YES
-Is a string first tuned to a standard pitch?#YES
-Is each node at an integer division of the string?#YES
-Is the tuning G-D-A-E used for most violin music?#YES
-Is a violin sometimes informally called a fiddle, regardless of the type of music played on it?#YES
-Does the word ``violin'' come from the Middle Latin word vitula, meaning ``stringed instrument''?#YES
+Do singaporeans enjoy squid?#YES
+Did Singapore's standard of living decrease since independence?#NO
+Did the media contribute 15.6% to Singapore's GDP in 2001?#NO
+Is Singapore located at the southern tip of the Korean Penisula?#NO
+Is Singapore a city-state?#YES
+Has Sang Nila Utama visited Singapore?#YES
+Was Lee Kuan Yew a successful leader of Singapore?#YES
+Is it true that singapore has several long - standing disputes with malaysia?#YES
+Has Singapore Changi Airport a network of 81 airlines connecting Singapore to 185 cities in 58 countries ?#YES
+Has Singapore a network of reservoirs and water catchment areas ?#YES
+Has Urbanization eliminated many areas of former primary rainforest , with the only remaining area of primary rainforest being Bukit Timah Nature Reserve ?#YES
+Does the economy not depend heavily on exports refining imported goods , especially in manufacturing ?#NO
+Is singapore -LRB- ; (: ; , -RRB- , officially the republic of singapore -LRB- ; (: ; , -RRB- , an island nation located at the southern tip of the malay peninsula?#YES
+Is singapore the 17th wealthiest country in the world in terms of gdp per capita?#NO

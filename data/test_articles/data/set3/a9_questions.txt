@@ -1,5 +1,12 @@
-Is Nairobi the capital of Kenya?#YES
-Was Nairobi founded in 1899?#YES
-Is the current estimated population of Nairobi about 6 milion?#NO
-Does the city and its surrounding area also form the Nairobi Province?#YES
-Does the name ``Nairobi'' come from the Maasai phrase Enkare Nyirobi, which translates to ``the place of cool waters''?#YES
+Was Calvin Coolidge the twenty-ninth vice president?#NO
+Was Calvin Coolidge born in Plymouth, Windsor County, Vermont?#YES
+Did Coolidge graduate from Black River Academy?#YES
+Was Coolidge the thirteenth President of the United States?#NO
+Was Calvin Coolidge Republican?#YES
+Was Calvin Coolidge a governor of Massachusetts?#YES
+Is Calvin Jr. older than John Coolidge?#NO
+Did Coolidge get in Amherst College?#YES
+Was John Calvin Coolidge Jr. was born in Las Vegas?#NO
+Was Coolidge opposed in the Republican nomination for Governor of Massachusetts in 1918?#YES
+Did Coolidge meet and marry Grace Anna Goodhue?#YES
+Have there been other US presidents that have visited Cuba?#NO

@@ -1,8 +1,8 @@
-Was Avogadro a  professor at the University of Turin?#YES
-Was he a member of the Royal Superior Council on Public Instruction?#YES
-Is Avogadro's number used to compute the results of chemical reactions?#YES
-Was Amedeo Avogadro was born in Turin?#YES
-Is Avogadro hailed as a founder of the atomic-molecular theory?#YES
-Did Johann Josef Loschmidt first calculate the value of Avogadro's number?#YES
-Is Amedeo Avogadro Italian?#YES
-Did he become a professor before the revolutionary movements against the king of Sardinia?#YES
+Is it true that he became a professor in 1820?#YES
+Was Lorenzo Romano Amedeo Carlo Avogadro an Italian savant?#YES
+Was Amedeo Avogadro born in Turin August 9th 1776 to a noble ancient family of Piedmont, Italy?#YES
+Is he most noted for his contributions to the theory of molarity and molecular weight?#YES
+Was King Victor Emmanuel III there to pay homage to Avogadro ?#YES
+Is Avogadro 's number commonly used to compute the results of chemical reactions ?#YES
+Did the scientific community not reserve great attention to his theory ?#YES
+Can the title of this famous 1811 paper be roughly translated into english?#YES
