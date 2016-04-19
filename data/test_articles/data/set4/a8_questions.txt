@@ -1,8 +1,21 @@
-Is it true that he became a professor in 1820?#YES
-Was Lorenzo Romano Amedeo Carlo Avogadro an Italian savant?#YES
-Was Amedeo Avogadro born in Turin August 9th 1776 to a noble ancient family of Piedmont, Italy?#YES
-Is he most noted for his contributions to the theory of molarity and molecular weight?#YES
-Was King Victor Emmanuel III there to pay homage to Avogadro ?#YES
-Is Avogadro 's number commonly used to compute the results of chemical reactions ?#YES
-Did the scientific community not reserve great attention to his theory ?#YES
-Can the title of this famous 1811 paper be roughly translated into english?#YES
+What was an Italian savant?#null
+What was an Italian savant?#null
+Who is most noted for his contributions to the theory of molarity and molecular weight?#null
+Who is most noted for his contributions to the theory of molarity and molecular weight?#null
+Who is most noted for his contributions to the theory of molarity and molecular weight?#null
+Who graduated in ecclesiastical law at the early age of 20 and began to practice?#null
+Who graduated in ecclesiastical law at the early age of 20 and began to practice?#null
+Who graduated in ecclesiastical law at the early age of 20 and began to practice?#null
+When did he publish another memoria?#null
+When did he publish another memoria?#null
+When did he publish another memoria?#null
+When did he become a professor?#null
+When did he become a professor?#null
+When did he become a professor?#null
+Is it true that he became a professor in 1820?#null
+Is it true that he became a professor in 1820?#null
+Is it true that he became a professor in 1820?#null
+Was Lorenzo Romano Amedeo Carlo Avogadro an Italian savant?#null
+Was Lorenzo Romano Amedeo Carlo Avogadro an Italian savant?#null
+Was Lorenzo Romano Amedeo Carlo Avogadro an Italian savant?#null
+Was Amedeo Avogadro born in Turin August 9th 1776 to a noble ancient family of Piedmont, Italy?#yes
