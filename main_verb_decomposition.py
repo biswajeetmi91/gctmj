@@ -3,6 +3,7 @@ import en
 import sys
 import os
 from nltk.parse.stanford import StanfordParser
+from pattern.en import tenses, conjugate
 
 # models_path = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
 # os.environ['JAVAHOME'] = '/usr/lib/jvm/java-8-oracle'
@@ -30,6 +31,17 @@ def main():
 	# print 'walks = ' , en.verb.tense('walks')
 	# print 'walking = ' , en.verb.tense('walking')
 	# return
+	# print en.verb.tense('played')
+	# print tenses('used')
+	# print conjugate('used',tense='present')
+	# return
+
+	# sentence = 'It must be the worst thing to be Biswajeet.'
+	# sentence = 'Object addresses can be used at style pointer arithmetic.'
+	# sentence = 'Java used comments similar to those of C.'
+	# parseTree = list(parser.raw_parse((sentence)))
+	# sentence = generateYesNoQuestionFromParseTree(parseTree)
+	# print sentence
 
 	try:
 		global parser
@@ -46,16 +58,15 @@ def main():
 		
 		sentences = open(INPUT_FILE).read().split('\n')
 		# sentences = ['Sentence 1','Sentence 2','Sentence 3']
-		sentences = ['']
 		outputSentences = []	
 		for sentence in sentences:
-			print sentence
+			# print sentence
 			if len(sentence) == 0: 
 				continue
 			parseTree = list(parser.raw_parse((sentence)))
 			# sentence = getSentenceWithAuxFromParseTree(parseTree)
 			sentence = generateYesNoQuestionFromParseTree(parseTree)
-			print sentence
+			# print sentence
 			outputSentences.append(' '.join(sentence))
 		
 		open(OUTPUT_FILE,'w').write('\n'.join(outputSentences))
@@ -73,7 +84,7 @@ def getSentenceWithAux(sentence):
 def generateYesNoQuestionFromParseTree(parseTree):
 	try:
 		root = parseTree[0]
-		print root.pretty_print()
+		# print root.pretty_print()
 		idx = -1
 		question = ['']
 		state = 0
@@ -102,22 +113,39 @@ def generateYesNoQuestionFromParseTree(parseTree):
 					idx += 1
 					pos = s.label()[:2]
 					leaf = str(leaves[0])
+					if '\"' in leaf:
+						return []
 					if state == 0:
-						if pos != 'VB':
+						if pos not in ['VB','MD']:
 							question.append(leaf)
 							continue
 						else:
-							tense = en.verb.tense(leaf)
-							# print 'tense of ', leaf, ' = ', tense
-							simplePast = en.verb.past(leaf)
-							simplePresent = en.verb.present(leaf)
-							principlePresent = en.verb.present_participle(leaf)
-							# if simplePresent in ['be','can','could','do','have','will','would','make']:
-							print 'simple present = ', simplePresent
-							if simplePresent in ['do','be']:
+							if pos == 'VB':
+								tense = en.verb.tense(leaf)
+								simplePast = en.verb.past(leaf)
+								simplePresent = en.verb.present(leaf)
+								principlePresent = en.verb.present_participle(leaf)
+								try:
+									if leaf[-2:] == 'ed' and en.verb.tense(leaf[:-1]) == 'infinitive':
+										base = leaf[:-1]
+										tense = 'past'
+										simplePast = en.verb.past(leaf)
+										simplePresent = en.verb.present(leaf)
+										principlePresent = en.verb.present_participle(leaf)
+								except:
+									print 'Exception caught while checking for past tense verb'
+								# print 'tense of ', leaf, ' = ', tense
+							else:
+								simplePresent = leaf
+								simplePast = leaf
+								principlePresent = leaf
+								tense = 'simplePresent'
+							if simplePresent in ['be','can','could','do','have','will','would','make','must']:
+							# if simplePresent in ['do','be']:
+								# print 'in loop simple present = ', simplePresent, ' , leaf = ', leaf
 								state = 1
 								question[0] = leaf
-								print 'putting ', leaf, ' at the start'
+								# print 'putting ', leaf, ' at the start'
 								originalTense = tense
 							else:
 								if tense == 'past':
@@ -160,7 +188,7 @@ def generateYesNoQuestionFromParseTree(parseTree):
 	except Exception as error:
 		print 'EXCEPTION CAUGHT in generateYesNoQuestionFromParseTree()', error
 		return []
-	print labels
+	# print labels
 	return question
 
 def getSentenceWithAuxFromParseTree(parseTree):
@@ -183,7 +211,6 @@ def getSentenceWithAuxFromParseTree(parseTree):
 						# b) Insert the correct auxilliary verb in the placeholder
 						# c) correct the tense of this verb
 		
-
 		for s in root.subtrees():
 			# each subtree has some leaves
 			# leaves can be single or multiple words depending on the POS. (POS are heirarchical so one word can even belong to multiple POS)
