@@ -30,6 +30,12 @@ def main():
 	# print 'walks = ' , en.verb.tense('walks')
 	# print 'walking = ' , en.verb.tense('walking')
 	# return
+	
+	# sentence = 'It must be the worst thing to be Biswajeet.'
+	# sentence = 'Object addresses can be used at style pointer arithmetic.'
+	# parseTree = list(parser.raw_parse((sentence)))
+	# sentence = generateYesNoQuestionFromParseTree(parseTree)
+	# print sentence
 
 	try:
 		global parser
@@ -103,18 +109,24 @@ def generateYesNoQuestionFromParseTree(parseTree):
 					pos = s.label()[:2]
 					leaf = str(leaves[0])
 					if state == 0:
-						if pos != 'VB':
+						if pos not in ['VB','MD']:
 							question.append(leaf)
 							continue
 						else:
-							tense = en.verb.tense(leaf)
-							# print 'tense of ', leaf, ' = ', tense
-							simplePast = en.verb.past(leaf)
-							simplePresent = en.verb.present(leaf)
-							principlePresent = en.verb.present_participle(leaf)
-							# if simplePresent in ['be','can','could','do','have','will','would','make']:
-							print 'simple present = ', simplePresent
-							if simplePresent in ['do','be']:
+							if pos == 'VB':
+								# print 'tense of ', leaf, ' = ', tense
+								tense = en.verb.tense(leaf)
+								simplePast = en.verb.past(leaf)
+								simplePresent = en.verb.present(leaf)
+								principlePresent = en.verb.present_participle(leaf)
+							else:
+								simplePresent = leaf
+								simplePast = leaf
+								principlePresent = leaf
+								tense = 'simplePresent'
+							if simplePresent in ['be','can','could','do','have','will','would','make','must']:
+							# if simplePresent in ['do','be']:
+								print 'in loop simple present = ', simplePresent, ' , leaf = ', leaf
 								state = 1
 								question[0] = leaf
 								print 'putting ', leaf, ' at the start'
@@ -183,7 +195,6 @@ def getSentenceWithAuxFromParseTree(parseTree):
 						# b) Insert the correct auxilliary verb in the placeholder
 						# c) correct the tense of this verb
 		
-
 		for s in root.subtrees():
 			# each subtree has some leaves
 			# leaves can be single or multiple words depending on the POS. (POS are heirarchical so one word can even belong to multiple POS)
