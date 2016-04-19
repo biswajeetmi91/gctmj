@@ -16,6 +16,8 @@ import socket
 import time
 import parse_articles
 import re
+import machine_learning as ml
+from pattern.en import *
 
 def write_trees(intree,sentences): 
 	intree = "input_tree.txt"
@@ -162,7 +164,9 @@ def main():
 
 	#os.environ ['STANFORD_MODELS'] = '/Users/apoorv/Desktop/11611/stanford-ner-2015-04-20/classifiers'
 	#os.environ ['CLASSPATH'] = '/Users/apoorv/Desktop/11611/stanford-ner-2015-04-20/stanford-ner.jar'
-	st = StanfordNERTagger('/media/Shared/stanford/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz','/media/Shared/stanford/stanford-ner-2014-06-16/stanford-ner.jar')
+	classifier_path = '/media/Shared/stanford/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz'
+	ner_models_path = '/media/Shared/stanford/stanford-ner-2014-06-16/stanford-ner.jar'
+	st = StanfordNERTagger(classifier_path,ner_models_path)
 
 	parser=StanfordParser()	
 	'''
@@ -186,7 +190,7 @@ def main():
 	#input_data = fpinp.read()
 	input_data = " ".join(modified_sentences)
 	
-	print "### running the factual sentence extractor..."
+	#print "### running the factual sentence extractor..."
 	
 	# first start the postag server for the factual extractor
 	factrunner = subprocess.Popen("bash ./runStanfordParserServer.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE,
@@ -201,15 +205,15 @@ def main():
 		sentences += [x for x in ssplits if len(x) > 0]
 	sentences = sentences[:-3]
 	#print sentences
-	print "number of sentences extracted :" + str(len(sentences))
+	#print "number of sentences extracted :" + str(len(sentences))
 	os.killpg(os.getpgid(factrunner.pid), signal.SIGTERM)
-	print "### time taken by this step = "+ str(time.time() - start_time)
+	#print "### time taken by this step = "+ str(time.time() - start_time)
 
 	# write the parse trees to a file to apply the tregex rules
-	print "### writing parse trees to text file..."
+	#print "### writing parse trees to text file..."
 	intree = "input_tree.txt"
 	write_trees(intree,sentences)
-	print "### time taken by this step = "+ str(time.time() - start_time)
+	#print "### time taken by this step = "+ str(time.time() - start_time)
 
 	# now apply the tregex rules to the parse trees and get 
 	# the modified trees
@@ -219,25 +223,26 @@ def main():
 		rulestring1 += rulei+str(i)+" "
 	runtsurgeon = "bash ./tsurgeon.sh -s -treeFile ../"+intree+" "+rulestring1
 	# run tsurgeon
-	print "### running tsurgeon..."
+	#print "### running tsurgeon..."
 	output = subprocess.check_output(runtsurgeon,shell='True',cwd=tsurgeon_path)
 	
 	# got the modified parse trees
 	outlist = output.split("\n")
 
-	"### time taken by this step = "+ str(time.time() - start_time)
+	#"### time taken by this step = "+ str(time.time() - start_time)
 	
 	# now on to question generation.
 	# create parented trees for the converted sentences
 	# open a file to write the questions
 	#qfp = open("questions.txt","w")
-	print "### creating questions..."
+	#print "### creating questions..."
 	# start supersense tagger server
 	sstserver = subprocess.Popen("bash ./server.sh &",shell=True,stderr = PIPE,cwd = supersense_path,preexec_fn=os.setsid)
 	server_address = ('localhost', 5558)
 	
 	# create the master question list
-	masterqlist = []	
+	masterqlist_yn = []
+	masterqlist_wh = []
 
 	for new_tree_string in outlist:
 		if new_tree_string is None or len(new_tree_string) == 0:
@@ -270,7 +275,7 @@ def main():
 		ynquestion = mvd.generateYesNoQuestionFromParseTree(ntree)
 		if len(ynquestion) > 0:
 			yesnoques = " ".join(ynquestion)
-			masterqlist.append(yesnoques)
+			masterqlist_yn.append(yesnoques)
 		# make other questions
 		make_questions(ntree,words,questionlist,sensedlist)
 		# generate questions from question list
@@ -288,28 +293,47 @@ def main():
 			else:
 				new_qstring = qstring
 			
-			#print new_qstring
-			
-			masterqlist.append(new_qstring)
+			masterqlist_wh.append(new_qstring)
 			#qfp.write(new_qstring+"\n")
 
 	
-	print "### made all questions "+str(time.time() - start_time)
+	#print "### made all questions "+str(time.time() - start_time)
 
 	os.killpg(os.getpgid(sstserver.pid), signal.SIGTERM)
 	
-	print "### post porcessing starting"
+	#print "### post porcessing starting"
 
-	qfp = open("questions.txt","w")
-	for q in masterqlist:
+	for q in masterqlist_wh:
 		qsplit = q.split()
 		if qsplit[0] == '':
-			masterqlist.remove(q)
+			masterqlist_wh.remove(q)
 		elif qsplit[0] == 'must':
-			masterqlist.remove(q)
-	for q in masterqlist:
-		qfp.write(q+"\n")
-	qfp.close()
+			masterqlist_wh.remove(q)
+
+	for q in masterqlist_yn:
+		qsplit = q.split()
+		if qsplit[0] == '':
+			masterqlist_yn.remove(q)
+		elif qsplit[0] == 'must':
+			masterqlist_yn.remove(q)
+
+
+
+	#print "### ranking questions"
+	final_qlist = ml.get_best_questions(num_questions/2,masterqlist_yn)
+	for q in final_qlist:
+		#q.capitalize()
+		q = q[:-1] + "?"
+		t = parsetree(q)
+		print " ".join([w.string if w.type.startswith("N") else w.string.lower() for w in t.words]).capitalize()
+
+	final_qlist = ml.get_best_questions(num_questions/2,masterqlist_wh)
+	for q in final_qlist:
+		#q.capitalize()
+		q= q[:-1] + '?'
+		t = parsetree(q)
+		print " ".join([w.string if w.type.startswith("N") else w.string.lower() for w in t.words]).capitalize()
+
 
 
 if __name__ == '__main__': main()
