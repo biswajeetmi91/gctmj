@@ -3,7 +3,6 @@ _author_ = 'lrmneves', 'apoorvab'
 #compressed warnings not to break our system
 import warnings
 warnings.filterwarnings("ignore")
-import traceback
 
 
 from nltk.tag import StanfordNERTagger
@@ -20,7 +19,6 @@ import json
 import string
 import utils
 from nltk.sentiment.util import mark_negation
-import configuration
 import re
 import subprocess
 from subprocess import *
@@ -48,7 +46,7 @@ def getQA(article):
             QA = line.strip("\n").split("#")
             questions.append(QA[0])
             answers.append(QA[1])
-    print "Answering questions for article " + article
+    # print "Answering questions for article " + article
     return questions,answers
 
 def has_all_main(possible_answer, main_part):
@@ -123,17 +121,22 @@ def get_wh_structure(q, wh_tag):
     
     #Create final part of answer, that comes after the verb
     final_aux = ""
-    if m[-1].index < len(q.words) -1:
-        final_aux = " ".join([w.string for w in q.words[m[-1].index+1:] if w.string != "?"])
+    try:
+        if m[-1].index < len(q.words) -1:
+            final_aux = " ".join([w.string for w in q.words[m[-1].index+1:] if w.string != "?"])
+    except:
+        pass
 
     #Find NP between the two verbs
 
     m = m[1:]
     current = 0
-    while not m[current +1].type.startswith("V") or  m[current+1].string[0].isupper():
+    while current +1 < len(m) and  (not m[current +1].type.startswith("V") or  m[current+1].string[0].isupper()):
         m[current],m[current+1] = m[current+1],m[current]
         current +=1
 
+    if current >= len(m):
+        return False,False
     #Handles 'do' in the past on in the third form
 
     if m[current].lemma.lower() == "do":
@@ -189,7 +192,7 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
     found_answer = False
     while not found_answer:
         answer = ""
-        while not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
+        while curr_idx < len(tagged_curr) and not (is_date(tagged_curr[curr_idx].string) or tagged_curr[curr_idx].type == "."):
             curr_idx +=1
         
         while curr_idx < len(curr) and (is_date(tagged_curr[curr_idx].string)\
@@ -242,7 +245,8 @@ def when_questions(curr,curr_idx,current_sentence, full_sentence,answer):
 
 def where_questions(curr,curr_idx,current_sentence, full_sentence,answer,ner_tag):
     location_prep = set(["on", "in", "at", "over", "to"])
-    if not current_sentence[curr_idx] in location_prep:
+
+    if curr_idx >= len(current_sentence) or not current_sentence[curr_idx] in location_prep:
         return False, ""
     answer = ""
     
@@ -367,7 +371,7 @@ def how_questions(q,sentences,stemmed_sentences):
                 while english_pack.is_number(pos_ans[idx]) and pos_ans[idx] != "," and pos_ans[idx] != ".":
                     answer += " " + pos_ans[idx]
                     idx +=1
-                print fix_punctuation(" ".join([w.string for w in q.words]))
+                # print fix_punctuation(" ".join([w.string for w in q.words]))
                 print answer + " " + pos_ans[ans_idxs[0]]
             return True
 
@@ -394,11 +398,11 @@ def how_questions(q,sentences,stemmed_sentences):
             main_part = [w.string for w in q.words[idx:] if w.type.startswith("NN") or w.type.startswith("JJ") or w.type.startswith("VB")]
             first_part = [w.string for w in q.words[idx:]]
             all_answers,idxs = get_possible_answers(sentences, first_part, stemmed_sentences,main_part)
-            print fix_punctuation(" ".join([w.string for w in q.words]))
+            # print fix_punctuation(" ".join([w.string for w in q.words]))
             print raw_sentences[idxs[0]]
             answered = True
     except Exception:
-        traceback.print_exc()
+
         return False
     return answered
 
@@ -414,55 +418,58 @@ def how_number_questions(q,sentences,stemmed_sentences,first_part,second_part,ma
     answered = False
     index = 0
     steps_to_rewind = 5
-    while not answered and index < len(possible_answers):
-        current_sentence = sentences[ans_idx[index]].split() 
-        curr = possible_answers[index].split()
+    try:
+        while not answered and index < len(possible_answers):
+            current_sentence = sentences[ans_idx[index]].split() 
+            curr = possible_answers[index].split()
 
 
-        main_idx = curr.index(main_part[0])
-        last_idx = -1
+            main_idx = curr.index(main_part[0])
+            last_idx = -1
 
-        for idx, w in enumerate(current_sentence):
-            if w.lower() == first_part[-1].lower():
-                last_idx = idx
+            for idx, w in enumerate(current_sentence):
+                if w.lower() == first_part[-1].lower():
+                    last_idx = idx
 
-                break
-
-
-        if main_idx == -1 or last_idx == -1:
-            index+=1
-            continue
-        num_idx = -1
-
-        for i in range(steps_to_rewind):
-            if main_idx - (i+1) >= 0:
-                if english_pack.is_number(curr[main_idx- (i+1)]):
-                    num_idx = main_idx - (i+1)
                     break
-            else:
-                break
-        
-        if num_idx != -1:
-            end_idx = num_idx+1
-            while num_idx > 0 and english_pack.is_number(curr[num_idx-1]):
-                num_idx-=1
-                
-            number = " ".join(current_sentence[num_idx:end_idx])
 
-            if number != "," and number != ".":
 
-                t = parsetree(" ".join(first_part))
-                final_ans = []
-                for w in t.words:
-                    if not w.type.startswith("N") and not w.type.startswith("J"):
+            if main_idx == -1 or last_idx == -1:
+                index+=1
+                continue
+            num_idx = -1
+
+            for i in range(steps_to_rewind):
+                if main_idx - (i+1) >= 0:
+                    if english_pack.is_number(curr[main_idx- (i+1)]):
+                        num_idx = main_idx - (i+1)
                         break
-                    else:
-                        final_ans.append(w.string) 
-                print fix_punctuation(" ".join([w.string for w in q.words]))
-                print fix_punctuation(number + " " + " ".join(final_ans) + ".")
-                answered = True
-                break
-        index+=1
+                else:
+                    break
+            
+            if num_idx != -1:
+                end_idx = num_idx+1
+                while num_idx > 0 and english_pack.is_number(curr[num_idx-1]):
+                    num_idx-=1
+                    
+                number = " ".join(current_sentence[num_idx:end_idx])
+
+                if number != "," and number != ".":
+
+                    t = parsetree(" ".join(first_part))
+                    final_ans = []
+                    for w in t.words:
+                        if not w.type.startswith("N") and not w.type.startswith("J"):
+                            break
+                        else:
+                            final_ans.append(w.string) 
+                    # print fix_punctuation(" ".join([w.string for w in q.words]))
+                    print fix_punctuation(number + " " + " ".join(final_ans) + ".")
+                    answered = True
+                    break
+            index+=1
+    except:
+        pass
     return answered
 
 def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
@@ -477,7 +484,8 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
     probable_answer = ""
 
     answer,main_part = get_wh_structure(q, parsetree(wh_value).words[0].type)
-
+    if answer == False:
+        return False
     #create answer stem vector to compute cosine similarity on the article
     stem_answer = " ".join([utils.stemm_term(w).lower() for w in answer.split()])
 
@@ -530,22 +538,25 @@ def wh_questions(q,ner_tag,sentences,stemmed_sentences, wh_value):
             answer = ans
             break
         index +=1
-    
-    if answered:
-        print fix_punctuation(original_q)
-        print fix_punctuation(answer)
-        return True
-    else:
-        if probable_answer != "":
-            if not "." in probable_answer:
-                probable_answer+= "."
-            print fix_punctuation(original_q)
-            print fix_punctuation(probable_answer)
+    try:
+        if answered:
+            # print fix_punctuation(original_q)
+            print fix_punctuation(answer)
             return True
         else:
-            print fix_punctuation(original_q)
-            print fix_punctuation(raw_sentences[ans_idx[0]])
-            return True
+            if probable_answer != "":
+                if not "." in probable_answer:
+                    probable_answer+= "."
+                # print fix_punctuation(original_q)
+                print fix_punctuation(probable_answer)
+                return True
+            else:
+                # print fix_punctuation(original_q)
+                print fix_punctuation(raw_sentences[ans_idx[0]])
+                return True
+    except:
+        
+        return False
 
 def answer_questions(article_path, QA_path):
     global model
@@ -569,7 +580,7 @@ def answer_questions(article_path, QA_path):
     #print documents
     model = Model(documents=documents, weight=TF)
     try:
-        model.reduce(150)
+        model.reduce(100)
     except Exception:
         try:
             model.reduce(L2)
@@ -609,41 +620,39 @@ def answer_questions(article_path, QA_path):
         #print t_q.words
 
         #print question_type
+        try:
+            if question_type == "EASY":
+                total_answers +=1
+                num_q += 1
+                
+                # Get object and subject from question
+                _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+                
+                # Vectorize object
+                #_object_vec = pp.text_to_vector (_object)
 
-        if question_type == "EASY":
-            total_answers +=1
-            num_q += 1
-            
-            # Get object and subject from question
-            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
-            
-            # Vectorize object
-            #_object_vec = pp.text_to_vector (_object)
+                # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
+                possible_answers,_ = get_possible_answers(sentences,_object,stemmed_sentences,None)
 
-            # print fix_punctuation(" ".join([t_q[i].string for i in range(len(t_q))]))
-            possible_answers,_ = get_possible_answers(sentences,_object,stemmed_sentences,None)
+                current_answer = NO
+                for ans in possible_answers:
 
-            current_answer = NO
-            for ans in possible_answers:
+                    # ans = stemmed_sentences[int(ans[1].name)]
+                    if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
 
-                # ans = stemmed_sentences[int(ans[1].name)]
-                if find_all(ans, _object, _object_tags) and find_all(ans,_subject,_sub_tags,subject = True):
+                        # if not negated(ans):
+                        current_answer = YES
 
-                    # if not negated(ans):
-                    current_answer = YES
+                        break
 
-                    break
-            # print current_answer
 
-            #if len (possible_answers) == 0:
-            #    current_answer = YES
+                if current_answer == NO:
+                    if np.random.choice(2, 1, p=[0.2, 0.8])[0] == 1:
+                        current_answer = YES
+                print current_answer
+                answered = True
 
-            if current_answer == NO:
-                if np.random.choice(2, 1, p=[0.2, 0.8])[0] == 1:
-                    current_answer = YES
-            
-            # current_answer = YES
-
+<<<<<<< HEAD
             correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
         elif question_type == "MEDIUM_WH":
             answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
@@ -675,25 +684,40 @@ def answer_questions(article_path, QA_path):
             _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
             
             subject_sentence = _subject.split()
+=======
+>>>>>>> b6ccbaa592f1da6e1aea47efc32f6b4448b51064
 
-            verb = subject_sentence[0]
+                correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
+            elif question_type == "MEDIUM_WH":
+                answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
+            elif question_type == "MEDIUM_HOW":
+                answered = how_questions(t_q,sentences,stemmed_sentences)
+        except:
+            pass
+        try:
+            if not answered:
+                # Any other questions come to this block of code
 
-            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
-            
-            mt = main_part.strip().split()
-            
-            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
-            
-            print fix_punctuation (what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part))
+                # Get object and subject from question
+                _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+                
+                subject_sentence = _subject.split()
 
-        #else:
-        #    possible_answers,_ = get_possible_answers(sentences," ".join([w.string for w in t_q.words]),stemmed_sentences,None)
-        #    print fix_punctuation(possible_answers[0])
+                verb = subject_sentence[0]
 
-    if total_answers > 0:
-        print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
-    else:
-        total_answers = 1.
+                main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+                
+                mt = main_part.strip().split()
+                
+                possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+                
+                print fix_punctuation (what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part))
+        except:
+            print raw_sentences[0]
+    # if total_answers > 0: 
+    #     print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
+    # else:
+    #     total_answers = 1.
     return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
@@ -1061,27 +1085,20 @@ def evaluate_qa ():
                 num_q += y
                 num += 1
             except:
-                traceback.print_exc()
-                
-    if num > 0:
-        print acc/num
-    print num_q
+                pass                
+    # if num > 0:
+    #     print acc/num
+    # print num_q
 
 def main():
+    if len(sys.argv) > 1:
 
-    '''
-    fpinp = open("data/test_articles/beckham_article.txt","r")
-    input_data = fpinp.read()
+        article = sys.argv[1] 
+        questions = sys.argv[2]
 
-    factext_path = 'FactualStatementExtractor'
-    # first call the factual statement extractor to get the list of simpler sentences
-    #factsendCommand = subprocess.Popen("bash ./simplify.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE, cwd = factext_path)
-    input_sentences = factsendCommand.communicate(input_data)
+    else:
 
-    for s in input_sentences:
-        print s
-    '''
-
+<<<<<<< HEAD
     # answer_questions("propaganda_article.txt","propaganda_QA.txt")
     answer_questions("beckham_article.txt","test_qs.txt")
     # answer_questions("beckham_article.txt","beckham_QA.txt")
@@ -1094,6 +1111,21 @@ def main():
 
     # Evaluate model on previous datasets
     # evaluate_qa ()
+=======
+        # answer_questions("propaganda_article.txt","propaganda_QA.txt")
+        # answer_questions("a2.txt","test_qs.txt")
+        # answer_questions("beckham_article.txt","beckham_QA.txt")
+        # answer_questions("crux_article.txt","crux_QA.txt")
+        # answer_questions("spanish_article.txt","spanish_QA.txt")
+        # answer_questions("buffon_article.txt","buffon_QA.txt")
+        # answer_questions("hercules_article.txt","hercules_QA.txt")
+        # answer_questions("dempsey_article.txt","dempsey_QA.txt")
+        answer_questions("java_article.txt","java_QA.txt")
+
+
+        # Evaluate model on previous datasets
+        # evaluate_qa ()
+>>>>>>> b6ccbaa592f1da6e1aea47efc32f6b4448b51064
 
 if __name__ == "__main__":
     main()

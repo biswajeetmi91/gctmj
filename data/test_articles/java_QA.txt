@@ -1,0 +1,159 @@
+is The latest version Java 8 .#YES
+what is Java 8 .#The latest version is Java 8 .
+are Earlier versions supported both by Oracle Oracle and other companies on a commercial basis .#YES
+what are supported both by Oracle and other companies on a commercial basis .#Earlier versions are supported both by Oracle and other companies on a commercial basis .
+where are Earlier versions supported both by Oracle and other companies .#Earlier versions are supported both by Oracle and other companies on a commercial basis .
+is Java 8 the only version currently currently supported for free free by Oracle Oracle .#YES
+what is the only version currently supported for free by Oracle .#Java 8 is the only version currently supported for free by Oracle .
+who is Java 8 .#Java 8 is the only version currently supported for free by Oracle .
+did Sun Microsystems release the first public implementation as Java 1 . 0 0 in 1995 1995 .#YES
+who released the first public implementation as Java 1 . 0 in 1995 .#Sun Microsystems released the first public implementation as Java 1 . 0 in 1995 .
+what did Sun Microsystems release as Java 1 . 0 in 1995 .#Sun Microsystems released the first public implementation as Java 1 . 0 in 1995 .
+did It soon soon withdraw from the process .#YES
+did Sun release much much of its Java virtual machine as free and open-source software , .#YES
+who released much of its Java virtual machine as free and open-source software , .#Sun released much of its Java virtual machine as free and open-source software , .
+what did Sun release as free and open-source software , .#Sun released much of its Java virtual machine as free and open-source software , .
+be It must `` simple simple , object-oriented object-oriented , and familiar familiar '' .#YES
+be It must `` robust and secure '' .#YES
+be It must `` architecture-neutral and portable '' .#YES
+do It must execute with `` high performance '' .#YES
+be It must `` interpreted , threaded , and dynamic '' .#YES
+does The use of universal bytecode make porting simple .#YES
+who makes porting simple .#The use of universal bytecode makes porting simple .
+does Oracle Corporation follow their acquisition of Sun Microsystems on January 27,2010 .#YES
+what follows their acquisition of Sun Microsystems on January 27,2010 .#Oracle Corporation follows their acquisition of Sun Microsystems on January 27,2010 .
+when does Oracle Corporation follow .#Oracle Corporation follows their acquisition of Sun Microsystems on January 27,2010 .
+is OpenJDK another notable Java SE implementation that is licensed under the GNU GPL .#YES
+who is another notable Java SE implementation that is licensed under the GNU GPL .#OpenJDK is another notable Java SE implementation that is licensed under the GNU GPL .
+what is OpenJDK .#OpenJDK is another notable Java SE implementation that is licensed under the GNU GPL .
+is The goal of Java Java to make all implementations of Java Java compatible compatible .#YES
+what is to make all implementations of Java compatible .#The goal of Java is to make all implementations of Java compatible .
+is Platform-independent Java essential to Java EE .#YES
+who is essential to Java EE .#Platform-independent Java is essential to Java EE .
+is An even more rigorous validation required to certify an implementation .#YES
+what is required to certify an implementation .#An even more rigorous validation is required to certify an implementation .
+ Programs Programs write in Java Java have a reputation for being slower slower .#YES
+who have a reputation for being slower .#Programs written in Java have a reputation for being slower .
+what  Programs write in Java have .#Programs written in Java have a reputation for being slower .
+does Java used an automatic garbage collector to manage memory in the object lifecycle .#YES
+what uses an automatic garbage collector to manage memory in the object lifecycle .#Java uses an automatic garbage collector to manage memory in the object lifecycle .
+who does Java used to manage memory in the object lifecycle .#Java uses an automatic garbage collector to manage memory in the object lifecycle .
+what does Java used an automatic garbage collector to manage in the object lifecycle .#Java uses an automatic garbage collector to manage memory in the object lifecycle .
+where does Java used an automatic garbage collector to manage memory .#Java uses an automatic garbage collector to manage memory in the object lifecycle .
+do Garbage collection may happen at any time .#YES
+what do may happen at any time .#Garbage collection may happen at any time .
+when do Garbage collection may happen .#Garbage collection may happen at any time .
+does Java not support C C + + style pointer arithmetic .#YES
+what does not support C C + + style pointer arithmetic .#Java does not support C C + + style pointer arithmetic .
+what does Java not support .#Java does not support C C + + style pointer arithmetic .
+be Object addresses and unsigned integers can used interchangeably at style pointer arithmetic .#YES
+what be can used interchangeably at style pointer arithmetic .#Object addresses and unsigned integers can be used interchangeably at style pointer arithmetic .
+where does Object address and unsigned integers can be used interchangeably .#Object addresses and unsigned integers can be used interchangeably at style pointer arithmetic .
+does Java contain multiple types of garbage collectors .#YES
+what contains multiple types of garbage collectors .#Java contains multiple types of garbage collectors .
+who does Java contain .#Java contains multiple types of garbage collectors .
+is The syntax of Java Java largely influenced by C C .#YES
+what is largely influenced by C .#The syntax of Java is largely influenced by C .
+does Java used comments similar to those those of C C .#YES
+what uses comments similar to those of C .#Java uses comments similar to those of C .
+what does Java used similar to those of C .#Java uses comments similar to those of C .
+is A class that not declared public public public may be stored in any any .#YES
+what be may stored in any .#A class that is not declared public may be stored in any .
+does The keyword static in front front of a method indicate a static method .#YES
+what indicates a static method .#The keyword static in front of a method indicates a static method .
+what does The keyword static in front of a method indicate .#The keyword static in front of a method indicates a static method .
+is The method name `` main '' not a keyword in the Java language .#YES
+what is not a keyword in the Java language .#The method name `` main '' is not a keyword in the Java language .
+what is The method name `` main '' not .#The method name `` main '' is not a keyword in the Java language .
+do The main method must accept an array of String objects .#YES
+what do must accept an array of String objects .#The main method must accept an array of String objects .
+what do The main method must accept .#The main method must accept an array of String objects .
+does The Java launcher launch Java by loading a given class .#YES
+what launches Java by loading a given class .#The Java launcher launches Java by loading a given class .
+what does The Java launcher launch by loading a given class .#The Java launcher launches Java by loading a given class .
+does The Java launcher launch Java by starting its public static void main method .#YES
+what launches Java by starting its public static void main method .#The Java launcher launches Java by starting its public static void main method .
+what does The Java launcher launch by starting its public static void main method .#The Java launcher launches Java by starting its public static void main method .
+does The import statement import the JOptionPane class from the javax .#YES
+what imports the JOptionPane class from the javax .#The import statement imports the JOptionPane class from the javax .
+what does The import statement import from the javax .#The import statement imports the JOptionPane class from the javax .
+does The OddEven class declare a single private field of type int name userInput userInput userInput .#YES
+what declares a single private field of type int named userInput userInput .#The OddEven class declares a single private field of type int named userInput .
+what does The OddEven class declare .#The OddEven class declares a single private field of type int named userInput .
+is The calculate method declared without the static keyword .#YES
+what is declared without the static keyword .#The calculate method is declared without the static keyword .
+are Java applets programs programs that are embedded in other applications .#YES
+what are programs that are embedded in other applications .#Java applets are programs that are embedded in other applications .
+what Java applets are .#Java applets are programs that are embedded in other applications .
+do The import statements direct the Java compiler to include the javax .#YES
+what direct the Java compiler to include the javax .#The import statements direct the Java compiler to include the javax .
+who do The import statements direct to include the javax .#The import statements direct the Java compiler to include the javax .
+who do The import statements direct the Java compiler to include .#The import statements direct the Java compiler to include the javax .
+is The annotation supported as of JDK 1 . 5 .#YES
+what is supported as of JDK 1 . 5 .#The annotation is supported as of JDK 1 . 5 .
+is An applet placed in an HTML document using the <applet> HTML element .#YES
+what is placed in an HTML document using the <applet> HTML element .#An applet is placed in an HTML document using the <applet> HTML element .
+where is An applet placed using the <applet> HTML element .#An applet is placed in an HTML document using the <applet> HTML element .
+does The host application instantiate the Hello applet .#YES
+what instantiates the Hello applet .#The host application instantiates the Hello applet .
+what does The host application instantiate .#The host application instantiates the Hello applet .
+does The host application create an AppletContext for the applet .#YES
+what creates an AppletContext for the applet .#The host application creates an AppletContext for the applet .
+what does The host application create .#The host application creates an AppletContext for the applet .
+is The host application a Web browser .#YES
+what is a Web browser .#The host application is a Web browser .
+what is The host application .#The host application is a Web browser .
+are JavaServer Pages server-side Java EE components that generate responses responses .#YES
+who are server-side Java EE components that generate responses .#JavaServer Pages are server-side Java EE components that generate responses .
+what are JavaServer Pages .#JavaServer Pages are server-side Java EE components that generate responses .
+is Swing a graphical user interface library for the Java SE platform .#YES
+what is a graphical user interface library for the Java SE platform .#Swing is a graphical user interface library for the Java SE platform .
+what is Swing .#Swing is a graphical user interface library for the Java SE platform .
+does The first import include all the public classes and  from the javax .#YES
+what includes all the public classes and interfaces from the javax .#The first import includes all the public classes and interfaces from the javax .
+what does The first import include and interfaces from the javax .#The first import includes all the public classes and interfaces from the javax .
+does The JFrame class implement a window with a title bar and a close control .#YES
+what implements a window with a title bar and a close control .#The JFrame class implements a window with a title bar and a close control .
+what does The JFrame class implement with a title bar and a close control .#The JFrame class implements a window with a title bar and a close control .
+does The Hello constructor initialize the frame by first calling the superclass constructor .#YES
+who initializes the frame by first calling the superclass constructor .#The Hello constructor initializes the frame by first calling the superclass constructor .
+what does The Hello constructor initialize by first calling the superclass constructor .#The Hello constructor initializes the frame by first calling the superclass constructor .
+does The superclass constructor pass the parameter `` hello '' .#YES
+who passes the parameter `` hello '' .#The superclass constructor passes the parameter `` hello '' .
+what does The superclass constructor pass `` hello '' .#The superclass constructor passes the parameter `` hello '' .
+is The superclass constructor used as the window 's title .#YES
+who is used as the window 's title .#The superclass constructor is used as the window 's title .
+is The main method called by the Java virtual machine when the program starts starts .#YES
+what is called by the Java virtual machine when the program starts .#The main method is called by the Java virtual machine when the program starts .
+were Generics added to the Java language in 2004 2004 .#YES
+who were added to the Java language in 2004 .#Generics were added to the Java language in 2004 .
+where were Generics added in 2004 .#Generics were added to the Java language in 2004 .
+when were Generics added to the Java language .#Generics were added to the Java language in 2004 .
+is Speed the implementation of floating-point arithmetic .#YES
+when is the implementation of floating-point arithmetic .#Speed is the implementation of floating-point arithmetic .
+what is Speed .#Speed is the implementation of floating-point arithmetic .
+is Speed the handling of unsigned numbers .#YES
+when is the handling of unsigned numbers .#Speed is the handling of unsigned numbers .
+what is Speed .#Speed is the handling of unsigned numbers .
+is The Android operating system an open source .#YES
+what is an open source .#The Android operating system is an open source .
+what is The Android operating system .#The Android operating system is an open source .
+does Android also also not provide the full Java SE standard library .#YES
+what does also not provide the full Java SE standard library .#Android also does not provide the full Java SE standard library .
+what does Android also not provide .#Android also does not provide the full Java SE standard library .
+is The Java Class Library the standard library .#YES
+what is the standard library .#The Java Class Library is the standard library .
+what is The Java Class Library .#The Java Class Library is the standard library .
+is The standard library developed to support application development in Java Java .#YES
+what is developed to support application development in Java .#The standard library is developed to support application development in Java .
+do The integration libraries allow the application writer to communicate with external systems .#YES
+what allow the application writer to communicate with external systems .#The integration libraries allow the application writer to communicate with external systems .
+who do The integration libraries allow to communicate with external systems .#The integration libraries allow the application writer to communicate with external systems .
+is Javadoc a comprehensive documentation system used by many Java developers .#YES
+who is a comprehensive documentation system used by many Java developers .#Javadoc is a comprehensive documentation system used by many Java developers .
+who is Javadoc .#Javadoc is a comprehensive documentation system used by many Java developers .
+is The comprehensive documentation system created by Sun Microsystems .#YES
+what is created by Sun Microsystems .#The comprehensive documentation system is created by Sun Microsystems .
+does Sun support four editions of Java Java target different application environments .#YES
+what supports four editions of Java targeting different application environments .#Sun supports four editions of Java targeting different application environments .
+what does Sun support .#Sun supports four editions of Java targeting different application environments .

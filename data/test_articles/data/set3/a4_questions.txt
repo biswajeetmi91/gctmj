@@ -1,13 +1,54 @@
-Was Abraham Lincoln the sixteenth President of the United States?#YES
-Did Lincoln sign the National Banking Act of 1863?#YES
-Did his mother die of pneumonia?#NO
-Did Lincoln beat John C. Breckinridge in the 1860 election?#YES
-Was Abraham Lincoln the first President of the United States?#NO
-Did Lincoln start his political career in 1832?#YES
-Did Lincoln ever represent Alton & Sangamon Railroad?#YES
-Did Lincoln win the election of 1860?#YES
-Do scholars rank lincoln among the top three presidents?#YES
-Did lincoln have 18 months of schooling?#YES
-Was Lincoln chosen as a presidential candidate in 1860?#YES
-Did Abraham Lincoln live in the Frontier?#YES
-Did Lincoln's Wife's Family support slavery?#YES
+Was Abraham Lincoln the sixteenth President of the United States?#yes.
+Was Abraham Lincoln the sixteenth President of the United States?#yes.
+Did Lincoln sign the National Banking Act of 1863?#yes.
+Did Lincoln sign the National Banking Act of 1863?#yes.
+Did his mother die of pneumonia?#no.
+Did his mother die of pneumonia?#no.
+How many long was Lincoln's formal education?#18 months.
+How many long was Lincoln's formal education?#18 months.
+When did Lincoln begin his political career?#1832.
+When did Lincoln begin his political career?#1832.
+What did The Legal Tender Act of 1862 establish?#the united states note, the first paper currency in united states history.
+What did The Legal Tender Act of 1862 establish?#the united states note, the first paper currency in united states history.
+Who suggested Lincoln grow a beard?#grace bedell.
+Who suggested Lincoln grow a beard?#grace bedell.
+When did the Gettysburg address argue that America was born?#1776.
+When did the Gettysburg address argue that America was born?#1776.
+Did Lincoln beat John C. Breckinridge in the 1860 election?#yes.
+Did Lincoln beat John C. Breckinridge in the 1860 election?#yes.
+Was Abraham Lincoln the first President of the United States?#no
+Was Abraham Lincoln the first President of the United States?#no
+Did Lincoln start his political career in 1832?#yes
+Did Lincoln start his political career in 1832?#yes
+Did Lincoln ever represent Alton & Sangamon Railroad?#yes
+Did Lincoln ever represent Alton & Sangamon Railroad?#yes
+Which county was Lincoln born in?#southeast hardin county, kentucky
+Which county was Lincoln born in?#southeast hardin county, kentucky
+When did Lincoln first serve as President?#march 4, 1861
+When did Lincoln first serve as President?#march 4, 1861
+Who assassinated Lincoln?#john wilkes booth
+Who assassinated Lincoln?#john wilkes booth
+Did Lincoln win the election of 1860?#yes
+Did Lincoln win the election of 1860?#yes
+Who was the general in charge at the Battle of Antietam?#john alexander mcclernand
+Who was the general in charge at the Battle of Antietam?#john alexander mcclernand
+Why did Lincoln issue the Emancipation Proclamation?#the goal was to weaken the rebellion, which was led and controlled by slave owners.
+Why did Lincoln issue the Emancipation Proclamation?#the goal was to weaken the rebellion, which was led and controlled by slave owners.
+Do scholars rank lincoln among the top three presidents?#yes
+Do scholars rank lincoln among the top three presidents?#yes
+Did lincoln have 18 months of schooling?#yes
+Did lincoln have 18 months of schooling?#yes
+Was Lincoln chosen as a presidential candidate in 1860?#yes
+Was Lincoln chosen as a presidential candidate in 1860?#yes
+How old was Lincoln in 1816?#seven
+How old was Lincoln in 1816?#seven
+When was the first photgraph of lincoln taken?#1846
+When was the first photgraph of lincoln taken?#1846
+How long was Lincoln's legal Career?#23 years
+How long was Lincoln's legal Career?#23 years
+What trail did Lincoln use a Farmers' Almanac in? #he defended william "duff" armstrong
+What trail did Lincoln use a Farmers' Almanac in? #he defended william "duff" armstrong
+Did Abraham Lincoln live in the Frontier?#yes
+Did Abraham Lincoln live in the Frontier?#yes
+Did Lincoln's Wife's Family support slavery?#yes
+Did Lincoln's Wife's Family support slavery?#yes
