@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import nltk
 from nltk.parse.stanford import StanfordParser
+from nltk.tag import StanfordNERTagger
 from nltk.tree import ParentedTree
 import os
 from nltk.tree import Tree
@@ -31,12 +32,6 @@ def write_trees(intree,sentences):
 			parseTree = list(parser.raw_parse(sent))
 			flag = 1
 			# check if the sentence has any pronouns
-			'''
-			for item in poslist:
-				if item[1] in {'PRP','PRP$'}:
-					flag = 0
-					break
-			'''
 			if flag == 1:
 				# the parse tree for the entire sentence
 				root = parseTree[0]
@@ -65,12 +60,6 @@ def make_questions(qtree,rootleaves,qlist,sensedlist):
 						index = rootleaves.index(leafword)
 						sensedwords.append(sensedlist[index])
 					except:
-						#print "EXCPTION - could not add this part, skipping"
-						#print rootleaves
-						#print leaves
-						#print sensedlist
-						#print "index = %d" %(index)
-						#sys.exit(0)
 						skipnode = 1
 						break
 				if skipnode == 1:
@@ -82,13 +71,18 @@ def make_questions(qtree,rootleaves,qlist,sensedlist):
 				# now find the head of the phrase, ie., the last noun in the list
 				if len(l) != 0:
 					headword = l[-1]
+					string = [w[0] for w in l]
+					nertags = st.tag(string)
+					headner = nertags[-1]
+					#print headner
+					#print nertags
 					# if its a time or cardinal, it mostly a when question
 					if headword[2] == 'B-noun.time' or headword[1] == 'CD':
 						qtype = 'when'
 					# a person means who question
-					elif headword[2] in {'B-noun.person', 'I-noun.person'} or headword[1] in {'PRP','PRP$'}: 
+					elif headner[1] in {'PERSON'} or headword[1] in {'PRP','PRP$'}: 
 						qtype = 'who'
-					elif l[0][2] in {'B-noun.person', 'I-noun.person'} and headword[2] in {'B-noun.location','I-noun.location'}:
+					elif nertags[0][1] in {'PERSON'} and headword[2] in {'B-noun.location','I-noun.location'}:
 						qtype = 'who' 
 					else:
 					# most of the time its a what question
@@ -117,8 +111,10 @@ def make_questions(qtree,rootleaves,qlist,sensedlist):
 					# check for whom
 					elif obj[2] in {'B-noun.person','I-noun.person'}:
 						qtype = 'whom'
-					else:
+					elif obj[2] in {'B-noun.location','I-noun.location'}:
 						qtype = 'where'
+					'''else:
+						qtype = 'where' '''
 				if qtype is not None:
 					nodepos = list(node.treeposition())
 					parent = node.parent()
@@ -158,10 +154,15 @@ def main():
 	global parser
 	global supersense_path
 	global num_questions
+	global st
 
 	tsurgeon_path = 'stanford-tregex-2014-10-26'
 	supersense_path = 'SupersenseTagger'
 	factext_path = 'FactualStatementExtractor'
+
+	#os.environ ['STANFORD_MODELS'] = '/Users/apoorv/Desktop/11611/stanford-ner-2015-04-20/classifiers'
+	#os.environ ['CLASSPATH'] = '/Users/apoorv/Desktop/11611/stanford-ner-2015-04-20/stanford-ner.jar'
+	st = StanfordNERTagger('/media/Shared/stanford/stanford-ner-2014-06-16/classifiers/english.all.3class.distsim.crf.ser.gz','/media/Shared/stanford/stanford-ner-2014-06-16/stanford-ner.jar')
 
 	parser=StanfordParser()	
 	'''
@@ -172,28 +173,6 @@ def main():
 	inputfile = sys.argv[1]
 	num_questions = int(sys.argv[2])
 
-	'''
-	# get top N sentences first
-	tokenized_sentences = utils.get_tokenized_sentences(inputfile)
-	print len(tokenized_sentences)
-	
-	# divide into two lists, one from which we can directly generate questions, other which has to be simplified
-	good_list, bad_list = get_diff_sentences(tokenized_sentences)
-
-	print good_list
-	
-	# make the input data:
-	input_data = " ".join(bad_list)
-
-	#sys.exit(0)
-
-
-	
-	# now get the top 2*N sentences
-	top_n_sentences = get_top_sentences(tokenized_sentences)
-	print top_n_sentences
-	sys.exit(0)
-	'''
 	# now join the sentences to send to factual extractor
 
 	fpinp = open(inputfile,"r")
@@ -220,9 +199,9 @@ def main():
 	for s in input_sentences:
 		ssplits = s.split("\n")
 		sentences += [x for x in ssplits if len(x) > 0]
-	print len(sentences)
-	sentences = sentences[:-10]
-	print len(sentences)
+	sentences = sentences[:-3]
+	#print sentences
+	print "number of sentences extracted :" + str(len(sentences))
 	os.killpg(os.getpgid(factrunner.pid), signal.SIGTERM)
 	print "### time taken by this step = "+ str(time.time() - start_time)
 
@@ -251,7 +230,7 @@ def main():
 	# now on to question generation.
 	# create parented trees for the converted sentences
 	# open a file to write the questions
-	qfp = open("questions.txt","w")
+	#qfp = open("questions.txt","w")
 	print "### creating questions..."
 	# start supersense tagger server
 	sstserver = subprocess.Popen("bash ./server.sh &",shell=True,stderr = PIPE,cwd = supersense_path,preexec_fn=os.setsid)
@@ -287,11 +266,11 @@ def main():
 		# convert the sensed table to a list
 		sensedlist = [[d for d in t.split("\t")] for t in sensed.split("\n")][:-2]
 		# get yes - no question
+		#print sentence
 		ynquestion = mvd.generateYesNoQuestionFromParseTree(ntree)
 		if len(ynquestion) > 0:
 			yesnoques = " ".join(ynquestion)
 			masterqlist.append(yesnoques)
-			qfp.write(yesnoques+"\n")
 		# make other questions
 		make_questions(ntree,words,questionlist,sensedlist)
 		# generate questions from question list
@@ -312,14 +291,25 @@ def main():
 			#print new_qstring
 			
 			masterqlist.append(new_qstring)
-			qfp.write(new_qstring+"\n")
+			#qfp.write(new_qstring+"\n")
 
-	qfp.close()
-	print "made all questions "+str(time.time() - start_time)
+	
+	print "### made all questions "+str(time.time() - start_time)
 
 	os.killpg(os.getpgid(sstserver.pid), signal.SIGTERM)
 	
+	print "### post porcessing starting"
 
+	qfp = open("questions.txt","w")
+	for q in masterqlist:
+		qsplit = q.split()
+		if qsplit[0] == '':
+			masterqlist.remove(q)
+		elif qsplit[0] == 'must':
+			masterqlist.remove(q)
+	for q in masterqlist:
+		qfp.write(q+"\n")
+	qfp.close()
 
 
 if __name__ == '__main__': main()

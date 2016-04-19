@@ -5,24 +5,13 @@ import os
 from nltk.parse.stanford import StanfordParser
 from pattern.en import tenses, conjugate
 
-# models_path = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser-3.5.2-models.jar'
-# os.environ['JAVAHOME'] = '/usr/lib/jvm/java-8-oracle'
-# os.environ['CLASSPATH'] = '/media/Shared/stanford/stanford-parser-full-2015-04-20/stanford-parser.jar'
-# os.environ['STANFORD_MODELS'] = models_path
-
-
-
-posTags = {'phrases':['ADJP','ADVP','CONJP','FRAG','INTJ','LST','NAC','NP','NX','PP','PRN','PRT','QP','RRC','UCP','VP','WHADJP','WHAVP','WHNP','WHPP','X','WHADVP']}
+posTags = {'phrases':['ADJP','ADVP','CONJP','FRAG','INTJ','LST','NAC','NP','NX','PP','PRN','PRT','QP','RRC','UCP','VP','WHADJP','WHAVP','WHNP','WHPP','X','WHADVP','unmv']}
 parser = StanfordParser()	
 
 # AUTHOR: rkohli1
 # This is a program to transford a sentence by adding an auxilliary verb to sentences that don't already have one. 
 # Two command line arguments(optional). Example : python main_verb_decomposition.py <input file> <output file>
 # the <input file> must contain a \n - separated list of sentences to be transformed.
-
-
-
-
 
 def main():
 
@@ -84,7 +73,7 @@ def getSentenceWithAux(sentence):
 def generateYesNoQuestionFromParseTree(parseTree):
 	try:
 		root = parseTree[0]
-		# print root.pretty_print()
+		#print root.pretty_print()
 		idx = -1
 		question = ['']
 		state = 0
@@ -115,6 +104,7 @@ def generateYesNoQuestionFromParseTree(parseTree):
 					leaf = str(leaves[0])
 					if '\"' in leaf:
 						return []
+					# print 'pos for ' + leaf + ' = ' + pos
 					if state == 0:
 						if pos not in ['VB','MD']:
 							question.append(leaf)
@@ -125,15 +115,6 @@ def generateYesNoQuestionFromParseTree(parseTree):
 								simplePast = en.verb.past(leaf)
 								simplePresent = en.verb.present(leaf)
 								principlePresent = en.verb.present_participle(leaf)
-								try:
-									if leaf[-2:] == 'ed' and en.verb.tense(leaf[:-1]) == 'infinitive':
-										base = leaf[:-1]
-										tense = 'past'
-										simplePast = en.verb.past(leaf)
-										simplePresent = en.verb.present(leaf)
-										principlePresent = en.verb.present_participle(leaf)
-								except:
-									print 'Exception caught while checking for past tense verb'
 								# print 'tense of ', leaf, ' = ', tense
 							else:
 								simplePresent = leaf
@@ -186,7 +167,7 @@ def generateYesNoQuestionFromParseTree(parseTree):
 						continue
 	
 	except Exception as error:
-		print 'EXCEPTION CAUGHT in generateYesNoQuestionFromParseTree()', error
+		#print 'EXCEPTION CAUGHT in generateYesNoQuestionFromParseTree()', error
 		return []
 	# print labels
 	return question
@@ -270,7 +251,7 @@ def getSentenceWithAuxFromParseTree(parseTree):
 
 				question[i] += str(leaf) + ' '
 	except:
-			print 'EXCEPTION CAUGHT in getSentenceWithAuxFromParseTree()'
+			#print 'EXCEPTION CAUGHT in getSentenceWithAuxFromParseTree()'
 			return []
 
 	return sentenceWithAux
