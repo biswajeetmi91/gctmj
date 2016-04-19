@@ -33,6 +33,8 @@ test_data_folder = "data/test_articles/"
 printable = set(string.printable)
 raw_sentences = None
 model = None
+#factext_path = 'FactualStatementExtractor'
+#factsendCommand = subprocess.Popen("bash ./simplify.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE, cwd = factext_path)
 
 def getQA(article):
     questions = []
@@ -771,7 +773,6 @@ def classify_question (tagged_question):
         question_type = "MEDIUM_HOW"
     elif "what" in tagged_question.string.lower() or "who" in tagged_question.string.lower() or "which" in tagged_question.string.lower():
         question_type = "MEDIUM_WHAT"
-   
     else:
         for w in tagged_question.words:
             if w.string.lower() in wh_question_set:
@@ -781,8 +782,18 @@ def classify_question (tagged_question):
 
     tagged_question = tagged_question.words
 
-    if tagged_question[0].type.startswith("VB") or tagged_question[0].type in ["MD", "JJ"] or tagged_question[0].type.startswith("N"):
+    index = 0
+
+    if tagged_question[index].type.startswith("VB") or tagged_question[index].type in ["MD", "JJ"] or tagged_question[index].type.startswith("N") or tagged_question[index].string.lower() in ["is", "were", "be", "did", "are", "has", "was"]:
         question_type = "EASY"
+
+    if question_type == "HARD":
+        while index < len (tagged_question) and tagged_question[index].type not in ["MD", "JJ"] and tagged_question[index].string.lower() not in ["is","were", "be", "did", "are", "has", "was"]:
+            # print tagged_question[index].string, tagged_question[index].type
+            index += 1
+
+        if index < len (tagged_question) and (tagged_question[index].type.startswith("VB") or tagged_question[index].type in ["MD", "JJ"] or tagged_question[index].type.startswith("N") or tagged_question[index].string.lower() in ["is", "were", "be", "did", "are", "has", "was"]):
+            question_type = "EASY"
 
     return question_type, wh_word
 
@@ -964,6 +975,19 @@ def evaluate_qa ():
 
 def main():
 
+    '''
+    fpinp = open("data/test_articles/beckham_article.txt","r")
+    input_data = fpinp.read()
+
+    factext_path = 'FactualStatementExtractor'
+    # first call the factual statement extractor to get the list of simpler sentences
+    #factsendCommand = subprocess.Popen("bash ./simplify.sh",shell=True,stdin=PIPE, stdout= PIPE,stderr = PIPE, cwd = factext_path)
+    input_sentences = factsendCommand.communicate(input_data)
+
+    for s in input_sentences:
+        print s
+    '''
+
     # answer_questions("propaganda_article.txt","propaganda_QA.txt")
     # # answer_questions("a2.txt","test_qs.txt")
     # answer_questions("beckham_article.txt","beckham_QA.txt")
@@ -971,11 +995,11 @@ def main():
     # answer_questions("spanish_article.txt","spanish_QA.txt")
     # answer_questions("buffon_article.txt","buffon_QA.txt")
     # answer_questions("hercules_article.txt","hercules_QA.txt")
-    answer_questions("dempsey_article.txt","dempsey_QA.txt")
+    # answer_questions("dempsey_article.txt","dempsey_QA.txt")
 
 
     # Evaluate model on previous datasets
-    evaluate_qa ()
+    #evaluate_qa ()
 
 if __name__ == "__main__":
     main()
