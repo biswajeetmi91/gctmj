@@ -23,7 +23,7 @@ import re
 import subprocess
 from subprocess import *
 import numpy as np
-
+import configuration
 
 '''
 This file tries to answer simple Yes or No questions by the use of string matching. We look for a popular structure of questions that have a verb or a modal followed by a noun. From this, we look for the rest of the sentence in the text and, if we can find it, we look for the noun in the same context. If found, we answer yes and no otherwise. To match situations like Does he practice to he practices, we use stemming. This approach allow to also deal with verbs in the past like was and were.
@@ -618,7 +618,7 @@ def answer_questions(article_path, QA_path):
 
         question_type, wh_word = classify_question (t_q)
         #print t_q.words
-
+        print questions[idx]
         #print question_type
         try:
             if question_type == "EASY":
@@ -652,48 +652,33 @@ def answer_questions(article_path, QA_path):
                 print current_answer
                 answered = True
 
-<<<<<<< HEAD
-            correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
-        elif question_type == "MEDIUM_WH":
-            answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
-        elif question_type == "MEDIUM_HOW":
-            answered = how_questions(t_q,sentences,stemmed_sentences)
-        elif question_type == "MEDIUM_WHO":
-            # Any other questions come to this block of code
-            print questions[idx]
-            #print t_q
-            # Get object and subject from question
-            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
-            
-            subject_sentence = _subject.split()
-
-            verb = subject_sentence[0]
-
-            main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
-            
-            mt = main_part.strip().split()
-            
-            possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
-            
-            print fix_punctuation (who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part, questions[idx]))
-        else:
-            # Any other questions come to this block of code
-            print questions[idx]
-            #print t_q
-            # Get object and subject from question
-            _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
-            
-            subject_sentence = _subject.split()
-=======
->>>>>>> b6ccbaa592f1da6e1aea47efc32f6b4448b51064
-
                 correct_answer += ( 1 if current_answer.lower() == ANSWERS[idx].lower() else 0)
             elif question_type == "MEDIUM_WH":
                 answered = wh_questions(t_q,ner_tag,sentences,stemmed_sentences,wh_word)
             elif question_type == "MEDIUM_HOW":
                 answered = how_questions(t_q,sentences,stemmed_sentences)
+            elif question_type == "MEDIUM_WHO":
+                # Any other questions come to this block of code
+                #print t_q
+                # Get object and subject from question
+                _object, _object_tags, _subject, _sub_tags = get_subject_object (t_q)
+                
+                subject_sentence = _subject.split()
+
+                verb = subject_sentence[0]
+
+                main_part = (_subject[len(verb) + 1:] + " " + verb + " " + _object).strip()
+                
+                mt = main_part.strip().split()
+                
+                possible_answers, answer_idx = get_possible_answers(sentences, _object, stemmed_sentences, mt)
+                
+                print fix_punctuation (who_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part, questions[idx]))
+
+                answered = True
         except:
             pass
+
         try:
             if not answered:
                 # Any other questions come to this block of code
@@ -714,10 +699,12 @@ def answer_questions(article_path, QA_path):
                 print fix_punctuation (what_questions (possible_answers, sentences, stemmed_sentences, answer_idx, main_part))
         except:
             print raw_sentences[0]
-    # if total_answers > 0: 
-    #     print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
-    # else:
-    #     total_answers = 1.
+
+    if total_answers > 0: 
+        print "{:.2f} % accuracy".format(float(correct_answer)/total_answers*100)
+    else:
+        total_answers = 1
+
     return float(correct_answer)/total_answers*100, num_q
 
 def isInterestingTermTag(tag):
@@ -815,7 +802,7 @@ def classify_question (tagged_question):
         question_type = "MEDIUM_HOW"
     elif "what" in tagged_question.string.lower() or "which" in tagged_question.string.lower():
         question_type = "MEDIUM_WHAT"
-    elif "who" in tagged_question.string.lower():
+    elif "who" in tagged_question.string.lower() or "whom" in tagged_question.string.lower():
         question_type = "MEDIUM_WHO"
     else:
         for w in tagged_question.words:
@@ -862,7 +849,7 @@ def shorten_question (sentence, start_index):
     answer = ""
     #print j, tagged_answer_words[j]
     for i, word in enumerate (tagged_answer_words[start_index:]):
-        if word.type.startswith ("DT") or word.type.startswith ("N") or word.type in ["JJ", "CC", "IN", "POS"]:
+        if (word.type.startswith ("DT") or word.type.startswith ("N") or word.type in ["JJ", "CC", "IN", "POS"]) and word.string not in ["during"]:
             if i == 0:
                 answer += word.string.title() + " "
             else:
@@ -1092,40 +1079,20 @@ def evaluate_qa ():
 
 def main():
     if len(sys.argv) > 1:
-
         article = sys.argv[1] 
         questions = sys.argv[2]
-
     else:
-
-<<<<<<< HEAD
-    # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-    answer_questions("beckham_article.txt","test_qs.txt")
-    # answer_questions("beckham_article.txt","beckham_QA.txt")
-    # answer_questions("crux_article.txt","crux_QA.txt")
-    # answer_questions("spanish_article.txt","spanish_QA.txt")
-    # answer_questions("buffon_article.txt","buffon_QA.txt")
-    # answer_questions("hercules_article.txt","hercules_QA.txt")
-    # answer_questions("dempsey_article.txt","dempsey_QA.txt")
-
-
-    # Evaluate model on previous datasets
-    # evaluate_qa ()
-=======
         # answer_questions("propaganda_article.txt","propaganda_QA.txt")
-        # answer_questions("a2.txt","test_qs.txt")
+        # answer_questions("beckham_article.txt","test_qs.txt")
         # answer_questions("beckham_article.txt","beckham_QA.txt")
         # answer_questions("crux_article.txt","crux_QA.txt")
         # answer_questions("spanish_article.txt","spanish_QA.txt")
-        # answer_questions("buffon_article.txt","buffon_QA.txt")
+        answer_questions("buffon_article.txt","buffon_QA.txt")
         # answer_questions("hercules_article.txt","hercules_QA.txt")
         # answer_questions("dempsey_article.txt","dempsey_QA.txt")
-        answer_questions("java_article.txt","java_QA.txt")
-
 
         # Evaluate model on previous datasets
         # evaluate_qa ()
->>>>>>> b6ccbaa592f1da6e1aea47efc32f6b4448b51064
 
 if __name__ == "__main__":
     main()
